@@ -1,0 +1,19 @@
+BEAUTY WORLD PVT LTD TAX INVOICE
+Plot 14, Andheri East, Mumbai, Maharashtra 400069
+Phone: 98260 22222 GSTIN: 27AABCB2222E173
+Bill To: Invoice No: BW/26-27/0871
+Demo Retail Store Invoice Date: 02/10/2026
+MG Road, Indore GSTIN: 23ABCDE1234F1Z5 Due Date: 09/10/2026
+S.No Description HSN Qty Rate GST% Amount
+1 Kajal Pencil Black 3304 24 95.00 18% 2,280.00
+2 Matte Lipstick Rose 3304 12 180.00 18% 2,160.00
+3 Neem Face Wash 100 ml 3401 18 92.00 18% 1,656.00
+4 Rose Water Toner 200 ml 3304 10 145.00 18% 1,450.00
+Taxable Value 7,546.00
+IGST @ 18% 1,358.28
+Round Off -0.28
+Grand Total Rs. 8,904.00
+Amount in words: Rupees Eight Thousand Nine Hundred Four Only
+Payment terms: 7 days. Bank: HDFC Bank, A/c 50200012345678, IFSC HDFC0000123
+For BEAUTY WORLD PVT LTD
+Authorised Signatory

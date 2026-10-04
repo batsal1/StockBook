@@ -1,0 +1,1774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stockbook — Business Management</title>
+<style>
+
+:root{
+  --bg:#f4f6f8;--panel:#fff;--ink:#17201d;--muted:#66736e;--line:#dfe5e2;
+  --primary:#13201c;--accent:#a3172b;--green:#17633f;--amber:#8a6200;--blue:#245b8f;
+  --red:#a3172b;--shadow:0 8px 24px rgba(20,32,28,.07);--radius:14px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 "Segoe UI",system-ui,sans-serif;font-variant-numeric:tabular-nums}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+.app{display:flex;min-height:100vh}
+.sidebar{width:245px;background:var(--primary);color:#fff;padding:20px 14px;position:fixed;inset:0 auto 0 0;overflow:auto}
+.brand{font-size:20px;font-weight:800;padding:8px 10px 20px}
+.brand small{display:block;font-size:11px;font-weight:500;opacity:.65;margin-top:3px}
+.nav-group{margin:18px 0 7px 10px;color:#91a09a;font-size:11px;text-transform:uppercase;letter-spacing:.08em}
+.nav button{display:flex;width:100%;align-items:center;gap:10px;border:0;background:transparent;color:#dce5e1;text-align:left;padding:10px;border-radius:9px;margin:2px 0}
+.nav button:hover,.nav button.active{background:#2a3833;color:#fff}
+.nav .icon{width:20px;text-align:center}
+.main{margin-left:245px;width:calc(100% - 245px)}
+.topbar{height:68px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;padding:0 28px;position:sticky;top:0;z-index:10}
+.search{flex:1;max-width:500px}
+.search input{width:100%;border:1px solid var(--line);border-radius:9px;padding:10px 13px;background:#f8faf9}
+.top-actions{display:flex;gap:8px;align-items:center}
+.avatar{width:34px;height:34px;border-radius:50%;background:#e9eeeb;display:grid;place-items:center;font-weight:700}
+.content{padding:26px;max-width:1500px;margin:auto}
+.page-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:20px}
+.page-head h1{margin:0;font-size:26px}
+.page-head p{margin:4px 0 0;color:var(--muted)}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:#fff;color:var(--ink);padding:9px 14px;border-radius:8px;font-weight:650}
+.btn.primary{background:var(--primary);border-color:var(--primary);color:#fff}
+.btn.red{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.green{background:var(--green);border-color:var(--green);color:#fff}
+.btn:hover{filter:brightness(.97)}
+.select,.input{border:1px solid var(--line);background:#fff;border-radius:8px;padding:9px 10px;color:var(--ink)}
+.grid{display:grid;gap:14px}
+.kpis{grid-template-columns:repeat(4,minmax(170px,1fr))}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px}
+.kpi{min-height:126px}
+.kpi .label{color:var(--muted);font-size:12px}
+.kpi .value{font-size:25px;font-weight:800;margin:7px 0}
+.change{font-size:12px}
+.up{color:var(--green)}.down{color:var(--red)}.warn{color:var(--amber)}
+.two{grid-template-columns:1.45fr 1fr}.three{grid-template-columns:repeat(3,1fr)}
+.chart-card{min-height:310px}
+.card-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.card-title h2{font-size:16px;margin:0}.muted{color:var(--muted)}
+.chart{height:220px;position:relative}
+.chart svg{width:100%;height:100%;overflow:visible}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--muted)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:currentColor;margin-right:5px}
+.bar-list{display:grid;gap:13px;margin-top:8px}
+.bar-row{display:grid;grid-template-columns:120px 1fr 70px;gap:9px;align-items:center;font-size:12px}
+.bar-track{height:9px;background:#edf1ef;border-radius:99px;overflow:hidden}
+.bar-fill{height:100%;border-radius:99px;background:var(--primary)}
+.donut-wrap{display:flex;align-items:center;gap:25px;height:220px}
+.donut{width:155px;height:155px;border-radius:50%;background:conic-gradient(#17633f 0 72%,#8a6200 72% 90%,#a3172b 90% 96%,#73817c 96% 100%);position:relative}
+.donut:after{content:"";position:absolute;inset:35px;background:#fff;border-radius:50%}
+.donut-center{position:absolute;inset:0;display:grid;place-items:center;font-weight:800;font-size:22px;z-index:1}
+.legend-list{display:grid;gap:8px;font-size:12px}.legend-list span{display:flex;justify-content:space-between;gap:20px}
+.table-wrap{overflow:auto}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.04em;padding:10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:11px 10px;border-bottom:1px solid #eef1ef;white-space:nowrap}
+td.right,th.right{text-align:right}
+.badge{display:inline-block;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:700}
+.badge.green{background:#e6f2eb;color:var(--green)}.badge.amber{background:#fff4d7;color:var(--amber)}.badge.red{background:#fbe7eb;color:var(--red)}.badge.blue{background:#e8f0f8;color:var(--blue)}
+.section{display:none}.section.active{display:block}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.toolbar .input{min-width:180px}
+.notice{padding:12px 14px;border-radius:10px;background:#fff8e5;border:1px solid #f0dfae;color:#6d5000;margin-bottom:14px}
+.form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%}
+.field textarea{min-height:80px}
+.stat-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.mini{background:#f7f9f8;padding:12px;border-radius:10px}.mini b{display:block;font-size:18px;margin-top:3px}
+.report-grid{grid-template-columns:repeat(3,1fr)}
+.report{padding:16px;border:1px solid var(--line);border-radius:12px;background:#fff}
+.report h3{margin:0 0 5px;font-size:14px}.report p{margin:0;color:var(--muted);font-size:12px}
+.empty{padding:50px;text-align:center;color:var(--muted)}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:30;padding:20px}
+.modal.show{display:flex}
+.modal-box{background:#fff;border-radius:16px;width:min(760px,100%);max-height:90vh;overflow:auto;padding:22px}
+.close{float:right;border:0;background:transparent;font-size:24px}
+@media(max-width:1100px){.kpis{grid-template-columns:repeat(2,1fr)}.two,.three,.report-grid{grid-template-columns:1fr}.form-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:760px){.sidebar{width:68px;padding:14px 8px}.brand{font-size:0}.brand:before{content:"S";font-size:22px}.brand small,.nav-group,.nav button span:not(.icon){display:none}.nav button{justify-content:center}.main{margin-left:68px;width:calc(100% - 68px)}.topbar{padding:0 14px}.content{padding:16px}.kpis,.stat-row{grid-template-columns:1fr 1fr}.form-grid{grid-template-columns:1fr}.page-head{flex-direction:column}}
+/* ---- additions for the live app ---- */
+.badge.grey{background:#eef1ef;color:var(--muted)}
+.right{text-align:right}
+.kpi .value.small{font-size:20px}
+.clickable{cursor:pointer}.clickable:hover td{background:#f7f9f8}
+.top-search{position:relative;flex:1;max-width:500px}
+.top-search input{width:100%;border:1px solid var(--line);border-radius:9px;padding:10px 13px;background:#f8faf9}
+.dropdown{position:absolute;top:calc(100% + 6px);left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);z-index:20;max-height:420px;overflow:auto;padding:6px}
+.dropdown .grp{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding:8px 10px 4px}
+.dropdown button{display:flex;justify-content:space-between;gap:10px;width:100%;border:0;background:none;text-align:left;padding:8px 10px;border-radius:8px}
+.dropdown button:hover{background:#f2f5f3}
+.bell{position:relative}
+.bell .count{position:absolute;top:-6px;right:-6px;background:var(--accent);color:#fff;border-radius:99px;font-size:10px;padding:1px 6px;font-weight:800}
+.panel{position:absolute;top:60px;right:70px;width:340px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);z-index:25;padding:8px}
+.panel a{display:flex;justify-content:space-between;gap:10px;padding:10px;border-radius:8px;color:var(--ink);text-decoration:none}
+.panel a:hover{background:#f2f5f3}
+.avatar{cursor:pointer;border:0}
+.loading{padding:40px;text-align:center;color:var(--muted)}
+.tabs{display:flex;gap:8px;flex-wrap:wrap}
+.bar-fill.red{background:var(--accent)}.bar-fill.green{background:var(--green)}.bar-fill.amber{background:var(--amber)}
+.bar-row.dual .bar-track{height:7px}
+.dual-tracks{display:grid;gap:3px}
+.modal-box.wide{width:min(1050px,100%)}
+.modal-box h2{margin:0 0 4px}
+.line-table td{padding:6px 6px}.line-table input{width:100%;min-width:60px;border:1px solid var(--line);border-radius:6px;padding:6px 7px}
+.sugg{border:1px solid var(--line);border-radius:10px;margin-top:6px;max-height:220px;overflow:auto}
+.sugg button{display:flex;justify-content:space-between;width:100%;border:0;border-bottom:1px solid #eef1ef;background:#fff;padding:9px 11px;text-align:left}
+.sugg button:hover{background:#f5f8f6}
+.totals{display:grid;grid-template-columns:1fr auto;gap:4px 24px;max-width:340px;margin-left:auto;margin-top:12px}
+.totals .grand{font-size:20px;font-weight:800}
+.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:16px;flex-wrap:wrap}
+.login-wrap{position:fixed;inset:0;background:var(--primary);display:grid;place-items:center;z-index:60;padding:20px}
+.login-card{background:#fff;border-radius:18px;padding:30px;width:min(420px,100%)}
+.login-card h1{margin:0 0 4px;font-size:26px}
+.login-card .field{margin-top:12px}
+.login-card .input{width:100%}
+.err{color:var(--red);font-size:13px;margin-top:10px;min-height:18px}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{background:#f2f5f3;border-radius:999px;padding:6px 12px;font-size:12px}
+.chip b{margin-left:4px}
+/* bill scanner */
+.drop{border:2px dashed #c4cdc9;border-radius:14px;padding:30px;text-align:center;background:#fafcfb;transition:background .15s}
+.drop.over{background:#eef5f1;border-color:var(--green)}
+.drop h3{margin:0 0 6px}
+.engine{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:16px 0 4px}
+.engine label{border:1px solid var(--line);border-radius:10px;padding:10px 14px;cursor:pointer;background:#fff;text-align:left;max-width:280px}
+.engine label.on{border-color:var(--primary);box-shadow:0 0 0 1px var(--primary)}
+.engine label.off{opacity:.55;cursor:not-allowed}
+.engine small{display:block;color:var(--muted);font-size:11px}
+.progress{height:8px;background:#edf1ef;border-radius:99px;overflow:hidden;margin-top:10px}
+.progress div{height:100%;background:var(--green);width:0;transition:width .2s}
+.scan-grid{display:grid;grid-template-columns:minmax(300px,0.9fr) 1.4fr;gap:14px;align-items:start}
+.scan-img{background:#eef1ef;border-radius:10px;overflow:auto;max-height:78vh}
+.scan-img img{width:100%;display:block}
+.scan-img iframe{width:100%;height:75vh;border:0}
+.warn-list{margin:10px 0 0;padding:0;list-style:none;display:grid;gap:6px}
+.warn-list li{background:#fff8e5;border:1px solid #f0dfae;color:#6d5000;border-radius:8px;padding:7px 10px;font-size:12.5px}
+.ok-list li{background:#e6f2eb;border-color:#bcdcc8;color:var(--green)}
+.match{font-size:11.5px}
+.match select{max-width:190px;font-size:12px;padding:5px}
+details summary{cursor:pointer;color:var(--muted);font-size:12px}
+pre.raw{white-space:pre-wrap;font-size:11.5px;background:#f7f9f8;border-radius:8px;padding:10px;max-height:220px;overflow:auto}
+@media(max-width:1100px){.scan-grid{grid-template-columns:1fr}}
+@media print{.sidebar,.topbar,.modal-actions,.close,.no-print{display:none!important}.main{margin:0;width:100%}.modal{position:static;background:none;padding:0}.modal-box{max-height:none;box-shadow:none}.app>main>.content{display:none}}
+</style>
+</head>
+<body>
+<div class="login-wrap" id="login" style="display:none">
+  <form class="login-card" id="loginForm">
+    <h1>Stockbook</h1><p class="muted" style="margin:0">Sign in to your shop</p>
+    <div class="field"><label>Email</label><input class="input" name="email" type="email" value="owner@demo.shop" required autocomplete="username"></div>
+    <div class="field"><label>Password</label><input class="input" name="password" type="password" value="demo1234" required autocomplete="current-password"></div>
+    <div class="err" id="loginErr"></div>
+    <button class="btn red" style="width:100%;margin-top:6px">Sign in</button>
+    <p class="muted" style="font-size:12px;margin-bottom:0">Demo shop: owner@demo.shop / demo1234 (after <code>npm run db:seed</code>)</p>
+  </form>
+</div>
+
+<div class="app">
+<aside class="sidebar">
+  <div class="brand"><span id="brandName">Stockbook</span> <small>Business Management</small></div>
+  <div class="nav">
+    <div class="nav-group">Overview</div>
+    <button data-section="dashboard"><span class="icon">⌂</span><span>Dashboard</span></button>
+    <div class="nav-group">Operations</div>
+    <button data-section="sales"><span class="icon">▣</span><span>Sales</span></button>
+    <button data-section="purchases"><span class="icon">⇩</span><span>Purchases</span></button>
+    <button data-section="scanner"><span class="icon">⧉</span><span>Bill Scanner</span></button>
+    <button data-section="inventory"><span class="icon">▤</span><span>Inventory</span></button>
+    <button data-section="parties"><span class="icon">♙</span><span>Customers & Suppliers</span></button>
+    <div class="nav-group">Finance</div>
+    <button data-section="finance"><span class="icon">₹</span><span>Finance</span></button>
+    <button data-section="expenses"><span class="icon">−</span><span>Expenses</span></button>
+    <button data-section="tax"><span class="icon">%</span><span>GST / Tax</span></button>
+    <div class="nav-group">Insights</div>
+    <button data-section="reports"><span class="icon">▥</span><span>Reports</span></button>
+    <button data-section="analytics"><span class="icon">◒</span><span>Analytics</span></button>
+    <div class="nav-group">System</div>
+    <button data-section="settings"><span class="icon">⚙</span><span>Settings</span></button>
+  </div>
+</aside>
+<main class="main">
+<header class="topbar">
+  <div class="top-search"><input placeholder="Search products, invoices, customers..." id="globalSearch" autocomplete="off" aria-label="Search"><div class="dropdown" id="searchResults" hidden></div></div>
+  <select class="select" id="periodSel" aria-label="Period">
+    <option value="last30">Last 30 days</option><option value="month">This month</option><option value="lastmonth">Last month</option>
+    <option value="quarter">This quarter</option><option value="fy">This financial year</option>
+  </select>
+  <button class="btn bell" id="bellBtn" aria-label="Alerts">🔔<span class="count" id="bellCount" hidden></span></button>
+  <button class="avatar" id="avatar" title="Account">OW</button>
+</header>
+<div class="panel" id="alertPanel" hidden></div>
+<div class="panel" id="accountPanel" hidden style="right:20px;width:240px"></div>
+<div class="content">
+  <section id="dashboard" class="section"></section>
+  <section id="sales" class="section"></section>
+  <section id="purchases" class="section"></section>
+  <section id="scanner" class="section"></section>
+  <section id="inventory" class="section"></section>
+  <section id="parties" class="section"></section>
+  <section id="finance" class="section"></section>
+  <section id="expenses" class="section"></section>
+  <section id="tax" class="section"></section>
+  <section id="reports" class="section"></section>
+  <section id="analytics" class="section"></section>
+  <section id="settings" class="section"></section>
+</div>
+</main>
+</div>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true"><div class="modal-box" id="mbox"></div></div>
+<div id="toast" role="status" style="position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#13201c;color:#fff;padding:11px 18px;border-radius:9px;display:none;z-index:80;font-weight:650;max-width:90vw"></div>
+<input type="file" id="filePick" hidden>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+/* ================= core ================= */
+const API = location.protocol.startsWith('http') ? location.origin : 'http://localhost:3000';
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+let token = localStorage.getItem('sb.token') || '';
+let ME = null;
+const isBoss = () => ME && ME.role !== 'cashier';
+
+function toast(msg, bad) {
+  const t = $('#toast'); t.textContent = msg; t.style.background = bad ? '#a3172b' : '#13201c'; t.style.display = 'block';
+  clearTimeout(window._tt); window._tt = setTimeout(() => (t.style.display = 'none'), bad ? 6000 : 2800);
+}
+async function api(method, path, body, opts = {}) {
+  let res;
+  const headers = { ...(token ? { Authorization: 'Bearer ' + token } : {}) };
+  if (body && !opts.form) headers['Content-Type'] = 'application/json';
+  try { res = await fetch(API + path, { method, headers, body: opts.form ? body : body ? JSON.stringify(body) : undefined }); }
+  catch (e) { toast('Cannot reach the server. Is "npm run dev" running?', true); throw e; }
+  if (res.status === 401 && !path.startsWith('/auth/login')) { showLogin(); throw new Error('Signed out'); }
+  if (opts.blob && res.ok) return res.blob();
+  const data = (res.headers.get('content-type') || '').includes('json') ? await res.json() : await res.text();
+  if (!res.ok) { const e = new Error((data && data.message) || 'Error ' + res.status); e.status = res.status; if (!opts.quiet) toast(e.message, true); throw e; }
+  return data;
+}
+const GET = (p, o) => api('GET', p, null, o);
+
+/* ---------- formatting ---------- */
+const rupees = (p) => (p || 0) / 100;
+const inr = (p, dec) => (p < 0 ? '−' : '') + '₹' + Math.abs(rupees(p)).toLocaleString('en-IN', { minimumFractionDigits: dec ? 2 : 0, maximumFractionDigits: dec ? 2 : 0 });
+const inr2 = (p) => inr(p, true);
+const short = (p) => {
+  const r = rupees(p), a = Math.abs(r), s = r < 0 ? '−' : '';
+  if (a >= 1e7) return s + '₹' + (a / 1e7).toFixed(2) + 'Cr';
+  if (a >= 1e5) return s + '₹' + (a / 1e5).toFixed(1) + 'L';
+  if (a >= 1e3) return s + '₹' + (a / 1e3).toFixed(1) + 'k';
+  return s + '₹' + Math.round(a);
+};
+const dshort = (d) => (d ? new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) : '—');
+const dlong = (d) => (d ? new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—');
+const qty = (n) => (Math.round(n * 1000) / 1000).toLocaleString('en-IN');
+const today = () => new Date().toISOString().slice(0, 10);
+const addDays = (d, k) => new Date(Date.parse(d + 'T00:00:00Z') + k * 864e5).toISOString().slice(0, 10);
+function change(pct, label = 'vs previous period') {
+  if (pct == null || !isFinite(pct)) return `<div class="change muted">No earlier data to compare</div>`;
+  return `<div class="change ${pct >= 0 ? 'up' : 'down'}">${pct >= 0 ? '▲' : '▼'} ${Math.abs(pct)}% ${label}</div>`;
+}
+const PAY = { cash: 'Cash', upi: 'UPI', card: 'Card', bank: 'Bank', credit: 'Credit' };
+const TYPE = { sale: 'Sale', purchase: 'Purchase', sale_return: 'Sale return', purchase_return: 'Purchase return' };
+function payStatus(inv) {
+  if (inv.status === 'cancelled') return '<span class="badge grey">Cancelled</span>';
+  const due = inv.totalPaise - inv.paidPaise;
+  if (due <= 0) return '<span class="badge green">Paid</span>';
+  if (inv.dueDate && inv.dueDate < today()) return '<span class="badge red">Overdue</span>';
+  if (inv.paidPaise > 0) return '<span class="badge blue">Partial</span>';
+  return `<span class="badge amber">${inv.type === 'purchase' ? 'Due' : 'Unpaid'}</span>`;
+}
+function stockBadge(p) {
+  if (p.stock <= 0) return '<span class="badge red">Out</span>';
+  if (p.stock <= p.reorderLevel) return '<span class="badge amber">Low</span>';
+  if (p.nextExpiry && p.nextExpiry <= addDays(today(), (ME?.shop?.expiryWarnDays) || 30)) return '<span class="badge red">Expiring</span>';
+  return '<span class="badge green">Healthy</span>';
+}
+const roleNote = '<div class="notice">Your role can\'t see financial figures. Ask the owner for manager access.</div>';
+
+/* ---------- period ---------- */
+function periodRange(key = $('#periodSel').value) {
+  const t = today(), d = new Date(t + 'T00:00:00Z'), y = d.getUTCFullYear(), m = d.getUTCMonth();
+  const iso = (dt) => dt.toISOString().slice(0, 10);
+  const fyStartYear = m >= 3 ? y : y - 1;
+  switch (key) {
+    case 'month': return { from: t.slice(0, 8) + '01', to: t, label: d.toLocaleDateString('en-IN', { month: 'long', year: 'numeric', timeZone: 'UTC' }) };
+    case 'lastmonth': { const s = new Date(Date.UTC(y, m - 1, 1)), e = new Date(Date.UTC(y, m, 0)); return { from: iso(s), to: iso(e), label: s.toLocaleDateString('en-IN', { month: 'long', year: 'numeric', timeZone: 'UTC' }) }; }
+    case 'quarter': { const q = Math.floor(((m + 9) % 12) / 3); const sm = (q * 3 + 3) % 12; const sy = sm > m ? y - 1 : y; return { from: iso(new Date(Date.UTC(sy, sm, 1))), to: t, label: `Q${q + 1} FY ${fyStartYear}-${String(fyStartYear + 1).slice(2)}` }; }
+    case 'fy': return { from: `${fyStartYear}-04-01`, to: t, label: `FY ${fyStartYear}-${String(fyStartYear + 1).slice(2)}` };
+    default: return { from: addDays(t, -29), to: t, label: 'the last 30 days' };
+  }
+}
+const pq = () => { const p = periodRange(); return `from=${p.from}&to=${p.to}`; };
+
+/* ---------- charts ---------- */
+function lineChart(series, labels, opts = {}) {
+  const W = 700, H = 230, L = 46, R = 690, T = 20, B = 200;
+  const vals = series.flatMap((s) => s.values);
+  let max = Math.max(...vals, 0), min = Math.min(...vals, 0);
+  if (max === min) max = min + 1;
+  const pad = (max - min) * 0.08; max += pad; if (min < 0) min -= pad;
+  const n = Math.max(1, (series[0]?.values.length || 1) - 1);
+  const x = (i) => L + ((R - L) * i) / n, y = (v) => B - ((B - T) * (v - min)) / (max - min);
+  const ticks = [0, 1, 2, 3, 4].map((k) => min + ((max - min) * k) / 4);
+  let svg = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="${esc(opts.title || 'chart')}"><g stroke="#e8ecea">`;
+  ticks.forEach((t) => (svg += `<line x1="${L}" y1="${y(t)}" x2="${R}" y2="${y(t)}"/>`));
+  svg += `</g><g fill="#66736e" font-size="10">`;
+  ticks.forEach((t) => (svg += `<text x="${L - 6}" y="${y(t) + 3}" text-anchor="end">${short(t)}</text>`));
+  if (min < 0) svg += `<line x1="${L}" y1="${y(0)}" x2="${R}" y2="${y(0)}" stroke="#b9c4c0" stroke-dasharray="3 3"/>`;
+  const step = Math.max(1, Math.ceil(labels.length / 8));
+  labels.forEach((l, i) => { if (i % step === 0 || i === labels.length - 1) svg += `<text x="${x(i)}" y="${H - 8}" text-anchor="middle">${esc(l)}</text>`; });
+  svg += `</g>`;
+  series.forEach((s) => {
+    const pts = s.values.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+    if (s.fill) svg += `<polyline points="${pts} ${x(s.values.length - 1)},${B} ${L},${B}" fill="${s.color}" opacity=".07"/>`;
+    svg += `<polyline points="${pts}" fill="none" stroke="${s.color}" stroke-width="${s.width || 3}" stroke-linejoin="round" stroke-linecap="round"/>`;
+  });
+  return svg + '</svg>';
+}
+function bars(rows, opts = {}) {
+  const max = Math.max(...rows.map((r) => Math.abs(r.value)), 1);
+  if (!rows.length) return `<p class="muted">${opts.empty || 'No data for this period.'}</p>`;
+  return `<div class="bar-list">${rows.map((r) => `<div class="bar-row"><span title="${esc(r.label)}" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(r.label)}</span><div class="bar-track"><div class="bar-fill ${r.cls || opts.cls || ''}" style="width:${Math.max(2, (Math.abs(r.value) / max) * 100)}%"></div></div><b>${r.display ?? short(r.value)}</b></div>`).join('')}</div>`;
+}
+const PALETTE = ['#13201c', '#a3172b', '#17633f', '#8a6200', '#245b8f', '#73817c'];
+function donut(segs, center) {
+  const total = segs.reduce((s, x) => s + Math.max(0, x.value), 0);
+  let acc = 0;
+  const grad = total ? segs.map((s) => { const a = (acc / total) * 100; acc += Math.max(0, s.value); return `${s.color} ${a}% ${(acc / total) * 100}%`; }).join(',') : '#e8ecea 0 100%';
+  return `<div class="donut-wrap"><div class="donut" style="background:conic-gradient(${grad})"><div class="donut-center">${center}</div></div><div class="legend-list">${segs.map((s) => `<span><i><span class="dot" style="color:${s.color}"></span>${esc(s.label)}</i><b>${s.display ?? (total ? Math.round((s.value / total) * 100) + '%' : '0%')}</b></span>`).join('')}</div></div>`;
+}
+const kpi = (label, value, sub, cls = '') => `<div class="card kpi"><div class="label">${label}</div><div class="value ${cls}">${value}</div>${sub || ''}</div>`;
+const tableHtml = (cols, rows, empty = 'Nothing here yet.') => rows.length
+  ? `<div class="table-wrap"><table><thead><tr>${cols.map((c) => `<th class="${c.right ? 'right' : ''}">${c.label}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table></div>`
+  : `<div class="empty">${empty}</div>`;
+
+/* ---------- modal ---------- */
+function openModal(html, wide) { $('#mbox').className = 'modal-box' + (wide ? ' wide' : ''); $('#mbox').innerHTML = `<button class="close no-print" onclick="closeModal()" aria-label="Close">×</button>` + html; $('#modal').classList.add('show'); const f = $('#mbox input:not([type=hidden]),#mbox select'); if (f) setTimeout(() => f.focus(), 30); }
+function closeModal() { $('#modal').classList.remove('show'); $('#mbox').innerHTML = ''; }
+$('#modal').addEventListener('mousedown', (e) => { if (e.target.id === 'modal') closeModal(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeModal(); $('#searchResults').hidden = true; $('#alertPanel').hidden = true; $('#accountPanel').hidden = true; } });
+const form = (root) => Object.fromEntries($$('[name]', root).map((el) => [el.name, el.type === 'checkbox' ? el.checked : el.value]));
+function pickFile(accept, capture) { return new Promise((res) => { const f = $('#filePick'); f.value = ''; f.accept = accept || ''; if (capture) f.setAttribute('capture', 'environment'); else f.removeAttribute('capture'); f.onchange = () => res(f.files[0] || null); f.click(); }); }
+async function openFile(id) { const b = await GET('/files/' + id, { blob: true }); window.open(URL.createObjectURL(b), '_blank'); }
+function downloadXlsx(sheets, filename) {
+  if (!window.XLSX) { toast('Excel export needs the internet the first time (to load the Excel library).', true); return; }
+  const wb = XLSX.utils.book_new();
+  Object.entries(sheets).forEach(([name, rows]) => XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows.length ? rows : [{ '': 'No data' }]), name.slice(0, 31)));
+  XLSX.writeFile(wb, filename);
+}
+async function downloadServer(path, filename) {
+  const b = await GET(path, { blob: true });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = filename; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+}
+
+/* ---------- auth & navigation ---------- */
+function showLogin() { token = ''; localStorage.removeItem('sb.token'); $('#login').style.display = 'grid'; }
+$('#loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault(); $('#loginErr').textContent = '';
+  try { const r = await api('POST', '/auth/login', form(e.target), { quiet: true }); token = r.token; localStorage.setItem('sb.token', token); $('#login').style.display = 'none'; boot(); }
+  catch (err) { $('#loginErr').textContent = err.message; }
+});
+let current = 'dashboard';
+const RENDER = {};
+function go(id, arg) {
+  current = id;
+  $$('.section').forEach((s) => s.classList.toggle('active', s.id === id));
+  $$('.nav button').forEach((b) => b.classList.toggle('active', b.dataset.section === id));
+  const el = $('#' + id);
+  el.innerHTML = '<div class="loading">Loading…</div>';
+  window.scrollTo({ top: 0 });
+  Promise.resolve(RENDER[id](el, arg)).catch((e) => { if (e.status === 403) el.innerHTML = roleNote; else el.innerHTML = `<div class="notice">Could not load this section: ${esc(e.message)}</div>`; });
+  history.replaceState(null, '', '#' + id);
+}
+$$('.nav button').forEach((b) => b.addEventListener('click', () => go(b.dataset.section)));
+$('#periodSel').addEventListener('change', () => go(current));
+async function boot() {
+  try { ME = await GET('/auth/me'); } catch { return; }
+  $('#brandName').textContent = ME.shop.name;
+  $('#avatar').textContent = ME.user.name.split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase();
+  const h = location.hash.slice(1);
+  go(RENDER[h] ? h : 'dashboard');
+  loadAlerts();
+}
+$('#avatar').addEventListener('click', () => {
+  const p = $('#accountPanel'); p.hidden = !p.hidden; $('#alertPanel').hidden = true;
+  p.innerHTML = `<div style="padding:10px"><b>${esc(ME.user.name)}</b><div class="muted" style="font-size:12px">${esc(ME.user.email)} · ${ME.role}</div></div><a href="#" onclick="go('settings');$('#accountPanel').hidden=true;return false">Settings</a><a href="#" onclick="showLogin();return false">Sign out</a>`;
+});
+
+/* ---------- alerts ---------- */
+async function loadAlerts() {
+  const items = [];
+  try {
+    const inv = await GET('/insights/inventory', { quiet: true });
+    if (inv.outOfStock) items.push({ t: `${inv.outOfStock} product${inv.outOfStock > 1 ? 's' : ''} out of stock`, go: "openStockFilter('out')", c: 'red' });
+    if (inv.lowStock) items.push({ t: `${inv.lowStock} running low`, go: "openStockFilter('low')", c: 'amber' });
+    if (inv.expiring) items.push({ t: `${inv.expiring} expiring within ${inv.expiryDays} days`, go: "openStockFilter('expiring')", c: 'red' });
+  } catch {}
+  if (isBoss()) {
+    try {
+      const r = await GET('/insights/aging?side=receivable', { quiet: true });
+      if (r.overduePaise > 0) items.push({ t: `${inr(r.overduePaise)} overdue from customers`, go: "go('finance','receivables')", c: 'amber' });
+      const p = await GET('/insights/aging?side=payable', { quiet: true });
+      if (p.overduePaise + p.dueThisWeekPaise > 0) items.push({ t: `${inr(p.overduePaise + p.dueThisWeekPaise)} to pay suppliers this week`, go: "go('finance','payables')", c: 'blue' });
+    } catch {}
+  }
+  $('#bellCount').hidden = !items.length; $('#bellCount').textContent = items.length;
+  $('#alertPanel').innerHTML = items.length ? items.map((i) => `<a href="#" onclick="$('#alertPanel').hidden=true;${i.go};return false"><span>${esc(i.t)}</span><span class="badge ${i.c}">View</span></a>`).join('') : '<p class="muted" style="padding:10px;margin:0">All clear. Nothing needs attention.</p>';
+}
+$('#bellBtn').addEventListener('click', () => { $('#alertPanel').hidden = !$('#alertPanel').hidden; $('#accountPanel').hidden = true; });
+function openStockFilter(f) { invState.stock = f; go('inventory'); }
+
+/* ---------- global search ---------- */
+let searchT;
+$('#globalSearch').addEventListener('input', (e) => {
+  clearTimeout(searchT);
+  const q = e.target.value.trim(), box = $('#searchResults');
+  if (!q) { box.hidden = true; return; }
+  searchT = setTimeout(async () => {
+    const r = await GET('/insights/search?q=' + encodeURIComponent(q), { quiet: true }).catch(() => null);
+    if (!r) return;
+    const grp = (title, list, fn) => (list.length ? `<div class="grp">${title}</div>` + list.map(fn).join('') : '');
+    box.innerHTML = grp('Products', r.products, (p) => `<button onclick="searchOpen('product','${p.id}')"><span>${esc(p.name)}</span><span class="muted">${esc(p.sku || p.barcode || '')}</span></button>`)
+      + grp('Bills', r.bills, (b) => `<button onclick="searchOpen('bill','${b.id}')"><span>${esc(b.number)} · ${esc(b.party || 'Walk-in')}</span><span class="muted">${TYPE[b.type]} · ${inr(b.totalPaise)}</span></button>`)
+      + grp('Customers & suppliers', r.parties, (p) => `<button onclick="searchOpen('party','${p.id}')"><span>${esc(p.name)}</span><span class="muted">${esc(p.phone || p.type)}</span></button>`)
+      || '<p class="muted" style="padding:10px;margin:0">No matches.</p>';
+    box.hidden = false;
+  }, 220);
+});
+document.addEventListener('click', (e) => { if (!e.target.closest('.top-search')) $('#searchResults').hidden = true; if (!e.target.closest('#alertPanel,#bellBtn')) $('#alertPanel').hidden = true; if (!e.target.closest('#accountPanel,#avatar')) $('#accountPanel').hidden = true; });
+async function searchOpen(kind, id) {
+  $('#searchResults').hidden = true; $('#globalSearch').value = '';
+  if (kind === 'product') productModal(await GET('/products/' + id));
+  if (kind === 'bill') viewInvoice(id);
+  if (kind === 'party') statementModal(id);
+}
+</script>
+<script>
+/* ================= dashboard ================= */
+RENDER.dashboard = async (el) => {
+  const P = periodRange();
+  const head = `<div class="page-head"><div><h1>Business Dashboard</h1><p>Financial, sales and inventory overview for ${esc(P.label)}.</p></div><div class="actions"><button class="btn" onclick="exportDashboard()">Export</button><button class="btn red" onclick="saleModal()">+ New Sale</button></div></div>`;
+  if (!isBoss()) {
+    const inv = await GET('/insights/inventory');
+    el.innerHTML = head + roleNote + `<div class="grid kpis">${kpi('Products', inv.activeSkus)}${kpi('Low stock', inv.lowStock, '', 'warn')}${kpi('Out of stock', inv.outOfStock, '', 'down')}${kpi('Expiring soon', inv.expiring)}</div>`;
+    return;
+  }
+  const d = await GET('/insights/dashboard?' + pq());
+  window._dash = d;
+  const k = d.kpis;
+  const trend = d.trend.length > 45 ? weekly(d.trend) : d.trend;
+  const exp = d.expenses.byCategory;
+  const expSegs = exp.slice(0, 4).map((e, i) => ({ label: e.category, value: e.amountPaise, color: PALETTE[i] }));
+  if (exp.length > 4) expSegs.push({ label: 'Other', value: exp.slice(4).reduce((s, e) => s + e.amountPaise, 0), color: PALETTE[5] });
+  const inv = d.inventory;
+  const cf = d.cashFlow;
+  const svp = d.salesVsPurchases, maxSP = Math.max(...svp.flatMap((m) => [m.salesPaise, m.purchasesPaise]), 1);
+  el.innerHTML = head + `
+  <div class="grid kpis">
+    ${kpi('Revenue <span class="muted">(excl. GST)</span>', inr(k.revenuePaise), change(k.revenueChangePct))}
+    ${kpi('Gross Profit', inr(k.grossProfitPaise), change(k.grossChangePct))}
+    ${kpi('Net Profit', inr(k.netProfitPaise), change(k.netChangePct), k.netProfitPaise < 0 ? 'down' : '')}
+    ${kpi('Cash & Bank', inr(k.cashAndBankPaise), `<div class="change muted">Cash ${short(k.cashPaise)} · Bank ${short(k.bankPaise)}</div>`)}
+    ${kpi('Receivables', inr(k.receivablesPaise), `<div class="change ${k.receivablesOverduePaise ? 'warn' : 'muted'}">${inr(k.receivablesOverduePaise)} overdue</div>`)}
+    ${kpi('Payables', inr(k.payablesPaise), `<div class="change muted">${inr(k.payablesDueThisWeekPaise)} due this week</div>`)}
+    ${kpi('Inventory Value', inr(k.inventoryValuePaise), '<div class="change muted">At purchase cost</div>')}
+    ${kpi('GST Liability', inr(k.gstLiabilityPaise), `<div class="change muted">Output ${short(k.outputGstPaise)} − Input ${short(k.inputGstPaise)}</div>`, k.gstLiabilityPaise > 0 ? 'warn' : '')}
+  </div>
+  <div class="grid two" style="margin-top:14px">
+    <div class="card chart-card"><div class="card-title"><h2>Revenue & Profit Trend</h2><div class="legend"><span class="up"><span class="dot"></span>Revenue</span><span class="down"><span class="dot"></span>Net Profit</span></div></div>
+      <div class="chart">${lineChart([{ values: trend.map((t) => t.revenuePaise), color: '#17633f', width: 3.5 }, { values: trend.map((t) => t.netProfitPaise), color: '#a3172b', width: 2.5 }], trend.map((t) => dshort(t.date)), { title: 'Revenue and net profit by day' })}</div></div>
+    <div class="card chart-card"><div class="card-title"><h2>Sales vs Purchases</h2><div class="legend"><span><span class="dot" style="color:#13201c"></span>Sales</span><span><span class="dot" style="color:#a3172b"></span>Purchases</span></div></div>
+      <div class="bar-list">${svp.map((m) => `<div class="bar-row dual"><span>${m.label}</span><div class="dual-tracks"><div class="bar-track"><div class="bar-fill" style="width:${(m.salesPaise / maxSP) * 100}%"></div></div><div class="bar-track"><div class="bar-fill red" style="width:${(m.purchasesPaise / maxSP) * 100}%"></div></div></div><b>${short(m.salesPaise)}</b></div>`).join('')}</div></div>
+  </div>
+  <div class="grid three" style="margin-top:14px">
+    <div class="card"><div class="card-title"><h2>Expense Breakdown</h2><span class="muted">${short(d.expenses.totalPaise)}</span></div>${expSegs.length ? donut(expSegs, short(d.expenses.totalPaise)) : '<div class="empty">No expenses recorded in this period.</div>'}</div>
+    <div class="card"><div class="card-title"><h2>Inventory Health</h2><span class="muted">${inv.activeSkus} SKUs</span></div>${donut([
+      { label: 'Healthy', value: inv.healthy, color: '#17633f', display: inv.healthy }, { label: 'Low stock', value: inv.lowStock, color: '#8a6200', display: inv.lowStock },
+      { label: 'Out of stock', value: inv.outOfStock, color: '#a3172b', display: inv.outOfStock }, { label: 'Expiring', value: inv.expiring, color: '#73817c', display: inv.expiring }], inv.healthyPct + '%')}</div>
+    <div class="card"><div class="card-title"><h2>Receivables Aging</h2><span class="muted">${inr(k.receivablesPaise)}</span></div>${bars(d.receivablesAging.map((b) => ({ label: b.label, value: b.amountPaise })))}</div>
+  </div>
+  <div class="grid two" style="margin-top:14px">
+    <div class="card"><div class="card-title"><h2>Top Selling Products</h2><button class="btn" onclick="go('analytics')">View analytics</button></div>
+      ${tableHtml([{ label: 'Product' }, { label: 'Units' }, { label: 'Revenue', right: 1 }, { label: 'Margin', right: 1 }], d.topProducts.map((p) => `<tr><td><b>${esc(p.name)}</b></td><td>${qty(p.units)}</td><td class="right">${inr(p.revenuePaise)}</td><td class="right ${p.marginPct >= 0 ? 'up' : 'down'}">${p.marginPct ?? '—'}%</td></tr>`), 'No sales in this period.')}</div>
+    <div class="card"><div class="card-title"><h2>Cash Flow</h2><span class="${cf.netPaise >= 0 ? 'up' : 'down'}">Net ${cf.netPaise >= 0 ? '+' : ''}${inr(cf.netPaise)}</span></div>
+      <div class="stat-row"><div class="mini"><span class="muted">Opening</span><b>${short(cf.openingPaise)}</b></div><div class="mini"><span class="muted">Cash In</span><b class="up">${short(cf.cashInPaise)}</b></div><div class="mini"><span class="muted">Cash Out</span><b class="down">${short(cf.cashOutPaise)}</b></div><div class="mini"><span class="muted">Closing</span><b>${short(cf.closingPaise)}</b></div><div class="mini"><span class="muted">Runway</span><b>${cf.runwayMonths ?? '—'} mo</b></div></div>
+      <div style="height:16px"></div>${bars([...cf.inflows.filter((x) => x.amountPaise).map((x) => ({ label: x.label, value: x.amountPaise, cls: 'green' })), ...cf.outflows.filter((x) => x.amountPaise).map((x) => ({ label: x.label, value: x.amountPaise, cls: 'red' }))])}</div>
+  </div>`;
+};
+function weekly(days) {
+  const out = [];
+  for (let i = 0; i < days.length; i += 7) { const w = days.slice(i, i + 7); out.push({ date: w[0].date, revenuePaise: w.reduce((s, x) => s + x.revenuePaise, 0), netProfitPaise: w.reduce((s, x) => s + x.netProfitPaise, 0) }); }
+  return out;
+}
+function exportDashboard() {
+  const d = window._dash; if (!d) return;
+  const k = d.kpis, r = (p) => rupees(p);
+  downloadXlsx({
+    Summary: [{ Period: `${d.from} to ${d.to}`, Revenue: r(k.revenuePaise), 'Gross profit': r(k.grossProfitPaise), 'Net profit': r(k.netProfitPaise), 'Cash & bank': r(k.cashAndBankPaise), Receivables: r(k.receivablesPaise), Payables: r(k.payablesPaise), 'Inventory value': r(k.inventoryValuePaise), 'GST liability': r(k.gstLiabilityPaise) }],
+    'Daily trend': d.trend.map((t) => ({ Date: t.date, Revenue: r(t.revenuePaise), 'Net profit': r(t.netProfitPaise) })),
+    'Sales vs purchases': d.salesVsPurchases.map((m) => ({ Month: m.month, Sales: r(m.salesPaise), Purchases: r(m.purchasesPaise) })),
+    Expenses: d.expenses.byCategory.map((e) => ({ Category: e.category, Amount: r(e.amountPaise), Entries: e.count })),
+    'Top products': d.topProducts.map((p) => ({ Product: p.name, Units: p.units, Revenue: r(p.revenuePaise), 'Margin %': p.marginPct })),
+  }, `dashboard-${d.from}-to-${d.to}.xlsx`);
+}
+
+/* ================= sales ================= */
+const salesState = { q: '', payment: '', type: 'sale' };
+RENDER.sales = async (el) => {
+  const P = periodRange();
+  el.innerHTML = `<div class="page-head"><div><h1>Sales</h1><p>Invoices, payments and returns for ${esc(P.label)}.</p></div><div class="actions"><button class="btn" onclick="saleModal('sale_return')">Sale Return</button><button class="btn red" onclick="saleModal()">+ New Sale</button></div></div>
+  <div class="card"><div class="toolbar"><input class="input" id="sQ" placeholder="Search invoice or customer" value="${esc(salesState.q)}">
+    <select class="select" id="sPay"><option value="">All payment status</option><option value="paid">Paid</option><option value="partial">Partial</option><option value="unpaid">Unpaid</option></select>
+    <select class="select" id="sType"><option value="sale">Sales</option><option value="sale_return">Returns</option></select>
+    <button class="btn" onclick="exportList('sales')">Export</button></div><div id="sList"><div class="loading">Loading…</div></div></div>`;
+  $('#sPay').value = salesState.payment; $('#sType').value = salesState.type;
+  const load = async () => {
+    const rows = await GET(`/invoices?type=${salesState.type}&${pq()}&limit=200${salesState.payment ? '&payment=' + salesState.payment : ''}${salesState.q ? '&q=' + encodeURIComponent(salesState.q) : ''}`);
+    window._list = rows;
+    $('#sList').innerHTML = tableHtml([{ label: 'Invoice' }, { label: 'Date' }, { label: 'Customer' }, { label: 'Payment' }, { label: 'Total', right: 1 }, { label: 'Due', right: 1 }, { label: 'Status' }, { label: '' }],
+      rows.map((r) => `<tr class="clickable" onclick="viewInvoice('${r.id}')"><td><b>${esc(r.number)}</b></td><td>${dshort(r.date)}</td><td>${esc(r.partyName || 'Walk-in')}</td><td>${PAY[r.payMode]}</td><td class="right">${inr(r.totalPaise)}</td><td class="right">${inr(Math.max(0, r.totalPaise - r.paidPaise))}</td><td>${payStatus(r)}</td><td><button class="btn">View</button></td></tr>`), 'No invoices match.');
+  };
+  let t; $('#sQ').oninput = (e) => { clearTimeout(t); t = setTimeout(() => { salesState.q = e.target.value.trim(); load(); }, 250); };
+  $('#sPay').onchange = (e) => { salesState.payment = e.target.value; load(); };
+  $('#sType').onchange = (e) => { salesState.type = e.target.value; load(); };
+  await load();
+};
+function exportList(name) {
+  downloadXlsx({ [name]: (window._list || []).map((r) => ({ Number: r.number, Date: r.date, Type: TYPE[r.type], Party: r.partyName || 'Walk-in', 'Pay mode': PAY[r.payMode], Total: rupees(r.totalPaise), Paid: rupees(r.paidPaise), Due: rupees(Math.max(0, r.totalPaise - r.paidPaise)), 'Due date': r.dueDate || '', Status: r.status })) }, `${name}-${periodRange().from}.xlsx`);
+}
+
+/* ================= purchases ================= */
+RENDER.purchases = async (el) => {
+  const P = periodRange();
+  const [rows, rets, pay] = await Promise.all([GET(`/invoices?type=purchase&${pq()}&limit=200`), GET(`/invoices?type=purchase_return&${pq()}&limit=200`), isBoss() ? GET('/insights/aging?side=payable') : null]);
+  window._list = rows;
+  const act = rows.filter((r) => r.status === 'active'), total = act.reduce((s, r) => s + r.totalPaise, 0);
+  el.innerHTML = `<div class="page-head"><div><h1>Purchases</h1><p>Supplier bills, goods received and payments for ${esc(P.label)}.</p></div><div class="actions"><button class="btn" onclick="go('scanner')">⧉ Scan a bill</button><button class="btn" onclick="purchaseModal('purchase_return')">Purchase Return</button><button class="btn red" onclick="purchaseModal()">+ New Purchase</button></div></div>
+  <div class="grid kpis">
+    ${kpi('Purchases in period', inr(total), `<div class="change muted">${act.length} purchase bills</div>`)}
+    ${kpi('Supplier Payables', pay ? inr(pay.totalPaise) : '—', pay ? `<div class="change ${pay.overduePaise ? 'down' : 'warn'}">${inr(pay.dueThisWeekPaise + pay.overduePaise)} due this week${pay.overduePaise ? ' (incl. overdue)' : ''}</div>` : '')}
+    ${kpi('Purchase Returns', inr(rets.filter((r) => r.status === 'active').reduce((s, r) => s + r.totalPaise, 0)), `<div class="change muted">${rets.length} return notes</div>`)}
+    ${kpi('Average Purchase Value', inr(act.length ? total / act.length : 0), '<div class="change muted">Per bill</div>')}
+  </div>
+  <div class="card" style="margin-top:14px"><div class="card-title"><h2>Purchase Bills</h2><button class="btn" onclick="exportList('purchases')">Export</button></div>
+  ${tableHtml([{ label: 'Bill' }, { label: 'Supplier' }, { label: 'Date' }, { label: 'Due' }, { label: 'Amount', right: 1 }, { label: 'Balance', right: 1 }, { label: 'Status' }, { label: '' }],
+    rows.map((r) => `<tr class="clickable" onclick="viewInvoice('${r.id}')"><td><b>${esc(r.number)}</b> ${r.attachmentId ? '<span class="badge grey">bill copy</span>' : ''}</td><td>${esc(r.partyName || '')}</td><td>${dshort(r.date)}</td><td>${dshort(r.dueDate)}</td><td class="right">${inr(r.totalPaise)}</td><td class="right">${inr(Math.max(0, r.totalPaise - r.paidPaise))}</td><td>${payStatus(r)}</td><td><button class="btn">View</button></td></tr>`), 'No purchase bills in this period. Record one, or scan a supplier bill.')}</div>`;
+};
+
+/* ================= bill entry (sale & purchase) ================= */
+let BILL = null;
+async function partiesFor(kind) { const all = await GET('/parties'); return all.filter((p) => (kind === 'buy' ? p.type === 'supplier' : p.type !== 'supplier')); }
+async function saleModal(type = 'sale', edit) {
+  const ps = await partiesFor('sell');
+  BILL = { type, lines: [], buy: false, editId: edit?.id };
+  openModal(`<h2>${edit ? 'Edit ' + TYPE[type] + ' ' + esc(edit.number) : type === 'sale' ? 'New Sale' : 'Sale Return'}</h2><p class="muted">Scan or search products. Stock, the customer's balance and cash update when you save.</p>
+  <div class="form-grid" id="bf">
+    <div class="field"><label>Customer</label><select class="select" name="partyId" onchange="repriceBill()"><option value="">Walk-in customer</option>${ps.map((p) => `<option value="${p.id}" data-type="${p.type}">${esc(p.name)}${p.type === 'wholesale' ? ' (wholesale)' : ''}${p.creditLimitPaise != null ? ' · limit ' + short(p.creditLimitPaise) : ''}</option>`).join('')}</select></div>
+    <div class="field"><label>Payment Mode</label><select class="select" name="payMode" onchange="if(this.value==='credit')$('#bf [name=paid]').value='0'"><option value="cash">Cash</option><option value="upi">UPI</option><option value="card">Card</option><option value="bank">Bank</option><option value="credit">Credit</option></select></div>
+    <div class="field"><label>Amount received now (₹)</label><input class="input" name="paid" placeholder="Full amount" inputmode="decimal"></div>
+    <div class="field"><label>Date</label><input class="input" type="date" name="date" value="${today()}"></div>
+    <div class="field"><label>Due Date</label><input class="input" type="date" name="dueDate"></div>
+    <div class="field"><label>Extra discount (₹)</label><input class="input" name="discount" inputmode="decimal" oninput="drawLines()"></div>
+    <div class="field" style="grid-column:1/-1"><label>Product</label><input class="input" id="pSearch" placeholder="Scan barcode or type product name, then Enter" autocomplete="off"><div class="sugg" id="pSugg" hidden></div></div>
+  </div>
+  <div class="card" style="margin-top:15px;background:#f7f9f8" id="lines"></div>
+  <div class="modal-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn red" id="saveBill" onclick="saveBill()">Save</button></div>`, true);
+  wireProductSearch(); if (edit) fillBill(edit); drawLines();
+}
+async function purchaseModal(type = 'purchase', prefill, edit) {
+  const ps = await partiesFor('buy');
+  BILL = { type, lines: prefill?.lines || [], buy: true, editId: edit?.id };
+  openModal(`<h2>${edit ? 'Edit ' + TYPE[type] + ' ' + esc(edit.number) : type === 'purchase' ? 'New Purchase' : 'Purchase Return'}</h2><p class="muted">Supplier bill entry. Rates are before GST, as printed on most supplier bills.</p>
+  <div class="form-grid" id="bf">
+    <div class="field"><label>Supplier</label><select class="select" name="partyId"><option value="">Choose supplier</option>${ps.map((p) => `<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select></div>
+    <div class="field"><label>Supplier Invoice No.</label><input class="input" name="number" placeholder="As printed on the bill"></div>
+    <div class="field"><label>Invoice Date</label><input class="input" type="date" name="date" value="${today()}"></div>
+    <div class="field"><label>Due Date</label><input class="input" type="date" name="dueDate"></div>
+    <div class="field"><label>Payment Mode</label><select class="select" name="payMode"><option value="credit">Credit</option><option value="bank">Bank</option><option value="upi">UPI</option><option value="cash">Cash</option></select></div>
+    <div class="field"><label>Paid Amount (₹)</label><input class="input" name="paid" value="0" inputmode="decimal"></div>
+    <div class="field" style="grid-column:1/-1"><label>Product</label><input class="input" id="pSearch" placeholder="Search product, or type a new product name and press Enter" autocomplete="off"><div class="sugg" id="pSugg" hidden></div></div>
+  </div>
+  <div class="card" style="margin-top:15px;background:#f7f9f8" id="lines"></div>
+  <div class="modal-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn red" id="saveBill" onclick="saveBill()">Save</button></div>`, true);
+  if (prefill?.partyId) $('#bf [name=partyId]').value = prefill.partyId;
+  wireProductSearch(); if (edit) fillBill(edit); drawLines();
+}
+/** Open any bill in its entry form, with every field and line filled in, ready to change and save. */
+async function editInvoice(id) {
+  const inv = await GET('/invoices/' + id);
+  if (inv.status === 'cancelled') return toast('Cancelled bills cannot be edited', true);
+  if (inv.type.startsWith('purchase')) await purchaseModal(inv.type, null, inv); else await saleModal(inv.type, inv);
+}
+function fillBill(inv) {
+  const set = (n, v) => { const el = $(`#bf [name=${n}]`); if (el && v != null) el.value = v; };
+  set('partyId', inv.partyId || ''); set('date', inv.date); set('dueDate', inv.dueDate || ''); set('payMode', inv.payMode);
+  // a bill that was paid in full stays "paid in full" when its total changes; a part payment keeps its amount
+  set('paid', inv.paidPaise >= inv.totalPaise && inv.payMode !== 'credit' ? '' : rupees(inv.paidPaise)); set('number', inv.number); set('discount', inv.discountPaise ? rupees(inv.discountPaise) : '');
+  BILL.lines = inv.lines.map((l) => ({ productId: l.productId, name: l.name, qty: l.qty, rate: rupees(l.ratePaise), gst: l.gstBps / 100, disc: l.discountBps / 100, batch: l.batchNo || '', expiry: l.expiry || '' }));
+  BILL.notes = inv.notes;
+}
+function wireProductSearch() {
+  const s = $('#pSearch'), box = $('#pSugg'); let res = [], t;
+  const show = async () => {
+    const q = s.value.trim(); if (!q) { box.hidden = true; return; }
+    res = (await GET('/products?limit=8&q=' + encodeURIComponent(q))).items;
+    box.innerHTML = res.map((p, i) => `<button type="button" data-i="${i}"><span><b>${esc(p.name)}</b> <span class="muted">${esc(p.sku || p.barcode || '')}</span></span><span>${inr(BILL.buy ? p.costPaise : p.pricePaise)} · ${qty(p.stock)} in stock</span></button>`).join('')
+      + (BILL.buy ? `<button type="button" data-new="1"><span>+ Add “${esc(q)}” as a new product</span></button>` : (res.length ? '' : '<div class="muted" style="padding:10px">No product found. Add it in Inventory first.</div>'));
+    box.hidden = false;
+    $$('button', box).forEach((b) => (b.onclick = () => (b.dataset.new ? addNewLine(q) : addLine(res[+b.dataset.i]))));
+  };
+  s.oninput = () => { clearTimeout(t); t = setTimeout(show, 180); };
+  s.onkeydown = async (e) => {
+    if (e.key !== 'Enter') return; e.preventDefault();
+    const q = s.value.trim(); if (!q) return;
+    if (/^\d{6,14}$/.test(q)) { const r = await GET('/products/lookup/' + q, { quiet: true }).catch(() => null); if (r?.found === 'catalog') return addLine(r.product); }
+    if (!res.length) await show();
+    if (res[0]) addLine(res[0]); else if (BILL.buy) addNewLine(q);
+  };
+}
+function partyType() { const o = $('#bf [name=partyId]')?.selectedOptions[0]; return o?.dataset.type; }
+function rateFor(p) { return BILL.buy ? p.costPaise : partyType() === 'wholesale' && p.wholesalePaise ? p.wholesalePaise : p.pricePaise; }
+function addLine(p) {
+  const ex = BILL.lines.find((l) => l.productId === p.id);
+  if (ex) ex.qty += 1; else BILL.lines.push({ productId: p.id, name: p.name, qty: 1, rate: rupees(rateFor(p)), gst: p.gstBps / 100, disc: 0, stock: p.stock, p });
+  $('#pSearch').value = ''; $('#pSugg').hidden = true; $('#pSearch').focus(); drawLines();
+}
+function addNewLine(name) { BILL.lines.push({ newName: name, name, qty: 1, rate: 0, gst: (ME.shop.defaultGstBps || 0) / 100, disc: 0 }); $('#pSearch').value = ''; $('#pSugg').hidden = true; drawLines(); }
+function repriceBill() { BILL.lines.forEach((l) => { if (l.p) l.rate = rupees(rateFor(l.p)); }); drawLines(); }
+function lineCalc(l, incl) { const gross = l.qty * l.rate * (1 - (l.disc || 0) / 100), g = (l.gst || 0) / 100; return incl ? { taxable: gross / (1 + g), tax: gross - gross / (1 + g), total: gross } : { taxable: gross, tax: gross * g, total: gross * (1 + g) }; }
+function drawLines() {
+  const incl = BILL.buy ? false : ME.shop.taxInclusive;
+  let taxable = 0, tax = 0, total = 0;
+  BILL.lines.forEach((l) => { const c = lineCalc(l, incl); taxable += c.taxable; tax += c.tax; total += c.total; });
+  total -= parseFloat($('#bf [name=discount]')?.value || 0) || 0;
+  if (!BILL.buy && ME.shop.roundToRupee) total = Math.round(total);
+  $('#lines').innerHTML = BILL.lines.length ? `<table class="line-table"><thead><tr><th>Product</th><th>Qty</th><th class="right">${BILL.buy ? 'Purchase Rate' : 'Rate'}</th><th>Disc %</th><th>GST %</th>${BILL.buy ? '<th>Batch</th><th>Expiry</th>' : ''}<th class="right">Amount</th><th></th></tr></thead><tbody>${BILL.lines.map((l, i) => `<tr>
+    <td><b>${esc(l.name)}</b>${l.newName ? ' <span class="badge blue">new</span>' : ''}${!BILL.buy && BILL.type === 'sale' && l.stock != null && l.qty > l.stock ? `<br><span class="warn" style="font-size:11px">Only ${qty(l.stock)} in stock</span>` : ''}</td>
+    <td style="width:80px"><input value="${l.qty}" oninput="BILL.lines[${i}].qty=parseFloat(this.value)||0;drawTotals()" inputmode="decimal"></td>
+    <td style="width:110px"><input value="${l.rate}" oninput="BILL.lines[${i}].rate=parseFloat(this.value)||0;drawTotals()" inputmode="decimal" style="text-align:right"></td>
+    <td style="width:70px"><input value="${l.disc}" oninput="BILL.lines[${i}].disc=parseFloat(this.value)||0;drawTotals()" inputmode="decimal"></td>
+    <td style="width:70px"><input value="${l.gst}" oninput="BILL.lines[${i}].gst=parseFloat(this.value)||0;drawTotals()" inputmode="decimal"></td>
+    ${BILL.buy ? `<td style="width:90px"><input value="${esc(l.batch || '')}" oninput="BILL.lines[${i}].batch=this.value"></td><td style="width:130px"><input type="date" value="${l.expiry || ''}" oninput="BILL.lines[${i}].expiry=this.value"></td>` : ''}
+    <td class="right" id="amt${i}">${inr2(Math.round(lineCalc(l, incl).total * 100))}</td><td><button class="btn" onclick="BILL.lines.splice(${i},1);drawLines()" aria-label="Remove">×</button></td></tr>`).join('')}</tbody></table>` : '<div class="muted">No items yet. Search above to add products.</div>';
+  $('#lines').insertAdjacentHTML('beforeend', `<div class="totals"><span class="muted">Taxable value</span><span class="right">${inr2(Math.round(taxable * 100))}</span><span class="muted">GST</span><span class="right">${inr2(Math.round(tax * 100))}</span><span><b>Total</b></span><span class="right grand">${inr2(Math.round(total * 100))}</span></div>`);
+  $('#saveBill').textContent = `Save ${TYPE[BILL.type]} — ${inr2(Math.round(total * 100))}`;
+  $('#saveBill').disabled = !BILL.lines.length;
+}
+function drawTotals() {
+  const incl = BILL.buy ? false : ME.shop.taxInclusive;
+  BILL.lines.forEach((l, i) => { const c = $('#amt' + i); if (c) c.textContent = inr2(Math.round(lineCalc(l, incl).total * 100)); });
+  const keep = document.activeElement; const sel = keep && keep.selectionStart;
+  const tot = $('#lines .totals'); if (tot) tot.remove();
+  let taxable = 0, tax = 0, total = 0;
+  BILL.lines.forEach((l) => { const c = lineCalc(l, incl); taxable += c.taxable; tax += c.tax; total += c.total; });
+  total -= parseFloat($('#bf [name=discount]')?.value || 0) || 0;
+  if (!BILL.buy && ME.shop.roundToRupee) total = Math.round(total);
+  $('#lines').insertAdjacentHTML('beforeend', `<div class="totals"><span class="muted">Taxable value</span><span class="right">${inr2(Math.round(taxable * 100))}</span><span class="muted">GST</span><span class="right">${inr2(Math.round(tax * 100))}</span><span><b>Total</b></span><span class="right grand">${inr2(Math.round(total * 100))}</span></div>`);
+  $('#saveBill').textContent = `Save ${TYPE[BILL.type]} — ${inr2(Math.round(total * 100))}`;
+  if (keep && sel != null) try { keep.setSelectionRange(sel, sel); } catch {}
+}
+async function saveBill(allowOverLimit) {
+  const f = form($('#bf'));
+  const body = {
+    type: BILL.type, partyId: f.partyId || undefined, date: f.date || undefined, dueDate: f.dueDate || undefined, payMode: f.payMode,
+    number: f.number || undefined, discountPaise: Math.round((parseFloat(f.discount) || 0) * 100), allowOverLimit: !!allowOverLimit,
+    paidPaise: f.paid === '' || f.paid == null || (BILL.buy && f.payMode !== 'credit' && !parseFloat(f.paid)) ? undefined : Math.round(parseFloat(f.paid) * 100),
+    lines: BILL.lines.map((l) => ({
+      ...(l.productId ? { productId: l.productId } : { newProduct: { name: l.newName } }),
+      qty: l.qty, ratePaise: Math.round(l.rate * 100), discountBps: Math.round((l.disc || 0) * 100), gstBps: Math.round((l.gst || 0) * 100),
+      ...(l.batch ? { batchNo: l.batch } : {}), ...(l.expiry ? { expiry: l.expiry } : {}),
+    })),
+  };
+  if (BILL.buy && !body.partyId) return toast('Choose the supplier', true);
+  if (BILL.editId) { body.notes = BILL.notes || undefined; if (body.paidPaise === undefined) body.paidPaise = undefined; }
+  $('#saveBill').disabled = true;
+  try {
+    const inv = BILL.editId ? await api('PUT', '/invoices/' + BILL.editId, body, { quiet: true }) : await api('POST', '/invoices', body, { quiet: true });
+    toast(`${TYPE[inv.type]} ${BILL.editId ? 'updated' : 'saved'}: ${inv.number} · ${inr2(inv.totalPaise)}`);
+    viewInvoice(inv.id); refreshAfterChange();
+  } catch (e) {
+    $('#saveBill').disabled = false;
+    if (/credit limit/i.test(e.message) && isBoss() && confirm(e.message + '\n\nAllow it anyway?')) return saveBill(true);
+    toast(e.message, true);
+  }
+}
+function refreshAfterChange() { if (current === 'settings' && window._setTab === 'data') renderDataManager($('#settings')); else if (['sales', 'purchases', 'inventory', 'dashboard', 'parties', 'expenses', 'finance'].includes(current)) go(current); loadAlerts(); }
+
+async function viewInvoice(id) {
+  const inv = await GET('/invoices/' + id), s = ME.shop;
+  const due = Math.max(0, inv.totalPaise - inv.paidPaise);
+  openModal(`<div class="printable"><div class="page-head" style="margin-bottom:10px"><div><h2>${esc(s.name)}</h2><div class="muted" style="font-size:12px">${esc(s.address || '')}${s.phone ? ' · ' + esc(s.phone) : ''}${s.gstin ? '<br>GSTIN ' + esc(s.gstin) : ''}</div></div>
+    <div style="text-align:right"><b>${inv.type === 'sale' ? 'TAX INVOICE' : TYPE[inv.type].toUpperCase()}</b><br>${esc(inv.number)}<br>${dlong(inv.date)}${inv.dueDate ? '<br><span class="muted">Due ' + dlong(inv.dueDate) + '</span>' : ''}<br>${payStatus(inv)}</div></div>
+    ${inv.party ? `<p><b>${esc(inv.party.name)}</b>${inv.party.gstin ? ' · GSTIN ' + esc(inv.party.gstin) : ''}${inv.party.phone ? '<br>' + esc(inv.party.phone) : ''}</p>` : '<p class="muted">Walk-in customer</p>'}
+    ${tableHtml([{ label: 'Item' }, { label: 'HSN' }, { label: 'Qty', right: 1 }, { label: 'Rate', right: 1 }, { label: 'GST', right: 1 }, { label: 'Amount', right: 1 }],
+      inv.lines.map((l) => `<tr><td>${esc(l.name)}${l.batchNo ? `<br><span class="muted" style="font-size:11px">Batch ${esc(l.batchNo)}${l.expiry ? ' · exp ' + dshort(l.expiry) : ''}</span>` : ''}</td><td>${esc(l.hsn || '')}</td><td class="right">${qty(l.qty)}</td><td class="right">${inr2(l.ratePaise)}${l.discountBps ? ` −${l.discountBps / 100}%` : ''}</td><td class="right">${l.gstBps / 100}%</td><td class="right">${inr2(l.totalPaise)}</td></tr>`))}
+    <div class="totals"><span class="muted">Taxable value</span><span class="right">${inr2(inv.taxablePaise)}</span><span class="muted">GST</span><span class="right">${inr2(inv.taxPaise)}</span>${inv.discountPaise ? `<span class="muted">Discount</span><span class="right">−${inr2(inv.discountPaise)}</span>` : ''}${inv.roundOffPaise ? `<span class="muted">Round off</span><span class="right">${inr2(inv.roundOffPaise)}</span>` : ''}<span><b>Total</b></span><span class="right grand">${inr2(inv.totalPaise)}</span><span class="muted">Paid (${PAY[inv.payMode]})</span><span class="right">${inr2(inv.paidPaise)}</span>${due ? `<span class="muted">Balance</span><span class="right warn">${inr2(due)}</span>` : ''}</div>
+    ${inv.notes ? `<p class="muted">${esc(inv.notes)}</p>` : ''}</div>
+    <div class="modal-actions">${inv.attachmentId ? `<button class="btn" onclick="openFile('${inv.attachmentId}')">Open bill copy</button>` : ''}${isBoss() && inv.status === 'active' ? `<button class="btn" onclick="cancelInvoice('${inv.id}')" style="margin-right:auto">Cancel bill</button><button class="btn" onclick="editInvoice('${inv.id}')">Edit bill</button>` : ''}${due && inv.party ? `<button class="btn green" onclick="paymentModal('${inv.party.id}')">${inv.type === 'purchase' ? 'Pay supplier' : 'Receive payment'}</button>` : ''}<button class="btn" onclick="closeModal()">Close</button><button class="btn primary" onclick="window.print()">Print</button></div>`, true);
+}
+async function cancelInvoice(id) {
+  const reason = prompt('Why cancel this bill? Stock will be put back and it will leave the balances.');
+  if (!reason) return;
+  await api('POST', `/invoices/${id}/cancel`, { reason });
+  toast('Bill cancelled'); closeModal(); refreshAfterChange();
+}
+</script>
+<script>
+/* ================= inventory ================= */
+const invState = { q: '', category: '', stock: '' };
+RENDER.inventory = async (el) => {
+  const [h, cats] = await Promise.all([GET('/insights/inventory'), GET('/products/categories')]);
+  el.innerHTML = `<div class="page-head"><div><h1>Inventory</h1><p>Products, stock ledger, valuation, expiry and reorder management.</p></div><div class="actions"><button class="btn" onclick="ledgerModal()">Stock Ledger</button>${isBoss() ? `<button class="btn" onclick="adjustModal()">Stock Adjustment</button><button class="btn red" onclick="productModal()">+ Add Product</button>` : ''}</div></div>
+  <div class="grid kpis">
+    ${kpi('Total SKUs', h.totalSkus.toLocaleString('en-IN'), `<div class="change muted">${h.activeSkus} active</div>`)}
+    ${kpi('Stock at Cost', inr(h.stockAtCostPaise), `<div class="change muted">MRP value ${short(h.stockAtMrpPaise)}</div>`)}
+    ${kpi('Low Stock', h.lowStock, `<div class="change muted">${h.outOfStock} out of stock · reorder recommended</div>`, 'warn')}
+    ${kpi('Dead Stock', inr(h.deadStockValuePaise), `<div class="change muted">${h.deadStockCount} items, no sale for ${h.deadDays}+ days</div>`, h.deadStockValuePaise ? 'down' : '')}
+  </div>
+  <div class="card" style="margin-top:14px">
+    <div class="toolbar"><input class="input" id="iQ" placeholder="Search product / SKU / barcode" value="${esc(invState.q)}">
+      <select class="select" id="iCat"><option value="">All categories</option>${cats.map((c) => `<option>${esc(c.category)}</option>`).join('')}</select>
+      <select class="select" id="iStock"><option value="">All stock</option><option value="low">Low</option><option value="out">Out</option><option value="expiring">Expiring</option><option value="dead">Dead stock</option></select>
+      <button class="btn" onclick="exportProducts()">Export</button></div>
+    <div id="iList"><div class="loading">Loading…</div></div></div>`;
+  $('#iCat').value = invState.category; $('#iStock').value = invState.stock;
+  const load = async () => {
+    let items;
+    if (invState.stock === 'dead') {
+      const dead = await GET('/insights/dead-stock?days=' + h.deadDays);
+      $('#iList').innerHTML = tableHtml([{ label: 'Product' }, { label: 'Category' }, { label: 'Stock', right: 1 }, { label: 'Value', right: 1 }, { label: 'Last sale' }, { label: 'Days idle', right: 1 }],
+        dead.map((p) => `<tr><td><b>${esc(p.name)}</b></td><td>${esc(p.category || '')}</td><td class="right">${qty(p.stock)}</td><td class="right">${inr(p.valuePaise)}</td><td>${p.lastSale ? dshort(p.lastSale) : 'Never'}</td><td class="right">${p.daysSinceSale}</td></tr>`), 'No dead stock. Everything has sold recently.');
+      return;
+    }
+    const r = await GET(`/products?limit=300&q=${encodeURIComponent(invState.q)}&category=${encodeURIComponent(invState.category)}${invState.stock ? '&stock=' + invState.stock + '&expiringDays=' + h.expiryDays : ''}`);
+    items = r.items; window._products = items;
+    $('#iList').innerHTML = tableHtml([{ label: 'Product' }, { label: 'SKU' }, { label: 'Category' }, { label: 'Stock', right: 1 }, { label: 'Reorder', right: 1 }, { label: 'Cost', right: 1 }, { label: 'Price', right: 1 }, { label: 'Value', right: 1 }, { label: 'Expiry' }, { label: 'Status' }],
+      items.map((p, i) => `<tr class="clickable" onclick="productModal(window._products[${i}])"><td><b>${esc(p.name)}</b>${p.barcode ? `<br><span class="muted" style="font-size:11px">${esc(p.barcode)}</span>` : ''}</td><td>${esc(p.sku || '—')}</td><td>${esc(p.category || '—')}</td><td class="right">${qty(p.stock)} ${esc(p.unit)}</td><td class="right">${qty(p.reorderLevel)}</td><td class="right">${inr(p.costPaise)}</td><td class="right">${inr(p.pricePaise)}</td><td class="right">${inr(Math.max(0, p.stock) * p.costPaise)}</td><td>${p.nextExpiry ? dshort(p.nextExpiry) : '—'}</td><td>${stockBadge(p)}</td></tr>`),
+      r.total ? '' : 'No products match. Add one, or import your Excel list from Reports.') + (r.total > items.length ? `<p class="muted">Showing ${items.length} of ${r.total}. Search to narrow down.</p>` : '');
+  };
+  let t; $('#iQ').oninput = (e) => { clearTimeout(t); t = setTimeout(() => { invState.q = e.target.value.trim(); load(); }, 220); };
+  $('#iCat').onchange = (e) => { invState.category = e.target.value; load(); };
+  $('#iStock').onchange = (e) => { invState.stock = e.target.value; load(); };
+  await load();
+};
+function exportProducts() {
+  downloadXlsx({ Products: (window._products || []).map((p) => ({ Name: p.name, SKU: p.sku, Barcode: p.barcode, Category: p.category, Unit: p.unit, HSN: p.hsn, 'GST %': p.gstBps / 100, Cost: rupees(p.costPaise), Price: rupees(p.pricePaise), Wholesale: p.wholesalePaise ? rupees(p.wholesalePaise) : '', MRP: p.mrpPaise ? rupees(p.mrpPaise) : '', Stock: p.stock, 'Reorder level': p.reorderLevel, 'Stock value': rupees(Math.max(0, p.stock) * p.costPaise), 'Next expiry': p.nextExpiry || '' })) }, 'inventory.xlsx');
+}
+function productModal(p) {
+  p = p || {}; const isNew = !p.id; const r = (v) => (v == null || v === '' ? '' : rupees(v));
+  openModal(`<h2>${isNew ? 'Add Product' : esc(p.name)}</h2>${isNew ? '' : `<p class="muted">Stock ${qty(p.stock ?? 0)} ${esc(p.unit || '')}. Use Stock Adjustment to change it.</p>`}
+  <div class="form-grid" id="pf">
+    <div class="field" style="grid-column:span 2"><label>Product name</label><input class="input" name="name" value="${esc(p.name)}"></div>
+    <div class="field"><label>Barcode</label><input class="input" name="barcode" value="${esc(p.barcode)}"></div>
+    <div class="field"><label>SKU</label><input class="input" name="sku" value="${esc(p.sku)}"></div>
+    <div class="field"><label>Brand</label><input class="input" name="brand" value="${esc(p.brand)}"></div>
+    <div class="field"><label>Category</label><input class="input" name="category" value="${esc(p.category)}" list="catList"><datalist id="catList"></datalist></div>
+    <div class="field"><label>Unit</label><select class="select" name="unit">${['pcs', 'kg', 'g', 'L', 'ml', 'pack', 'box', 'dozen', 'pair', 'set', 'm'].map((u) => `<option ${u === (p.unit || 'pcs') ? 'selected' : ''}>${u}</option>`).join('')}</select></div>
+    <div class="field"><label>HSN</label><input class="input" name="hsn" value="${esc(p.hsn)}"></div>
+    <div class="field"><label>GST %</label><input class="input" name="gst" value="${p.gstBps != null ? p.gstBps / 100 : (ME.shop.defaultGstBps || 0) / 100}"></div>
+    <div class="field"><label>Cost price (₹)</label><input class="input" name="cost" value="${r(p.costPaise)}"></div>
+    <div class="field"><label>Selling price (₹)</label><input class="input" name="price" value="${r(p.pricePaise)}"></div>
+    <div class="field"><label>Wholesale price (₹)</label><input class="input" name="wholesale" value="${r(p.wholesalePaise)}"></div>
+    <div class="field"><label>MRP (₹)</label><input class="input" name="mrp" value="${r(p.mrpPaise)}"></div>
+    <div class="field"><label>Reorder level</label><input class="input" name="reorder" value="${p.reorderLevel ?? ''}"></div>
+    <div class="field"><label>Shelf / location</label><input class="input" name="location" value="${esc(p.location)}"></div>
+    ${isNew ? `<div class="field"><label>Opening stock</label><input class="input" name="stock"></div><div class="field"><label>Batch (optional)</label><input class="input" name="batch"></div><div class="field"><label>Expiry (optional)</label><input class="input" type="date" name="expiry"></div>` : ''}
+    <div class="field"><label><input type="checkbox" name="track" ${p.trackBatches ? 'checked' : ''}> Track batches & expiry</label></div>
+  </div>
+  <div class="modal-actions">${!isNew && isBoss() ? `<button class="btn" style="margin-right:auto" onclick="archiveProduct('${p.id}')">Archive</button><button class="btn" onclick="adjustModal('${p.id}')">Adjust stock</button>` : ''}<button class="btn" onclick="closeModal()">Cancel</button>${isBoss() ? `<button class="btn red" onclick="saveProduct('${p.id || ''}')">Save product</button>` : ''}</div>`, true);
+  GET('/products/categories').then((cs) => { const d = $('#catList'); if (d) d.innerHTML = cs.map((c) => `<option value="${esc(c.category)}">`).join(''); });
+}
+async function saveProduct(id) {
+  const f = form($('#pf')), money = (v) => (v === '' ? null : Math.round(parseFloat(v) * 100));
+  if (!f.name.trim()) return toast('Give the product a name', true);
+  const body = { name: f.name, barcode: f.barcode || null, sku: f.sku || null, brand: f.brand || null, category: f.category || null, unit: f.unit, hsn: f.hsn || null,
+    gstBps: Math.round((parseFloat(f.gst) || 0) * 100), costPaise: money(f.cost) ?? 0, pricePaise: money(f.price) ?? 0, wholesalePaise: money(f.wholesale), mrpPaise: money(f.mrp),
+    reorderLevel: parseFloat(f.reorder) || 0, location: f.location || null, trackBatches: f.track || !!f.batch };
+  if (!id) Object.assign(body, { openingStock: parseFloat(f.stock) || 0, ...(f.batch ? { openingBatchNo: f.batch } : {}), ...(f.expiry ? { openingExpiry: f.expiry } : {}) });
+  await api(id ? 'PATCH' : 'POST', id ? '/products/' + id : '/products', body);
+  toast('Product saved'); closeModal(); refreshAfterChange();
+}
+async function archiveProduct(id) { if (!confirm('Archive this product? Past bills keep it.')) return; await api('DELETE', '/products/' + id); toast('Archived'); closeModal(); refreshAfterChange(); }
+async function adjustModal(productId) {
+  const ps = (await GET('/products?limit=500')).items;
+  openModal(`<h2>Stock Adjustment</h2><p class="muted">For stock counts, damage, expiry and samples. Purchases and sales adjust stock on their own.</p>
+  <div class="form-grid" id="af"><div class="field" style="grid-column:1/-1"><label>Product</label><select class="select" name="productId">${ps.map((p) => `<option value="${p.id}" ${p.id === productId ? 'selected' : ''}>${esc(p.name)} — ${qty(p.stock)} in stock</option>`).join('')}</select></div>
+  <div class="field"><label>Change (+ add, − remove)</label><input class="input" name="qty" placeholder="e.g. -2"></div>
+  <div class="field"><label>Reason</label><select class="select" name="reason"><option>Stock count correction</option><option>Damaged</option><option>Expired</option><option>Free sample / gift</option><option>Internal use</option><option>Theft / loss</option></select></div>
+  <div class="field"><label>Batch (optional)</label><input class="input" name="batch"></div></div>
+  <div class="modal-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn red" onclick="saveAdjust()">Save adjustment</button></div>`);
+}
+async function saveAdjust() {
+  const f = form($('#af')); const q = parseFloat(f.qty);
+  if (!q) return toast('Enter how many to add or remove', true);
+  await api('POST', `/products/${f.productId}/adjust`, { qtyChange: q, reason: f.reason, ...(f.batch ? { batchNo: f.batch } : {}) });
+  toast('Stock updated'); closeModal(); refreshAfterChange();
+}
+async function ledgerModal() {
+  const P = periodRange(); const rows = await GET(`/insights/stock-ledger?${pq()}&limit=1000`);
+  const R = { sale: 'Sale', purchase: 'Purchase', sale_return: 'Sale return', purchase_return: 'Purchase return', adjustment: 'Adjustment', opening: 'Opening stock', cancel: 'Bill cancelled' };
+  window._ledger = rows;
+  openModal(`<h2>Stock Ledger</h2><p class="muted">Every stock movement in ${esc(P.label)}, newest first, with the balance after it.</p>
+  ${tableHtml([{ label: 'Date' }, { label: 'Product' }, { label: 'Movement' }, { label: 'Bill / note' }, { label: 'Batch' }, { label: 'In / out', right: 1 }, { label: 'Balance', right: 1 }],
+    rows.map((m) => `<tr><td>${dshort(m.date)}</td><td>${esc(m.product)}</td><td>${R[m.reason] || m.reason}</td><td>${esc(m.billNumber || m.note || '')}</td><td>${esc(m.batch || '')}</td><td class="right ${m.qty > 0 ? 'up' : 'down'}">${m.qty > 0 ? '+' : ''}${qty(m.qty)}</td><td class="right">${qty(m.balance)}</td></tr>`), 'No stock movements in this period.')}
+  <div class="modal-actions"><button class="btn" onclick="downloadXlsx({'Stock ledger':window._ledger.map(m=>({Date:m.date,Product:m.product,Movement:m.reason,Bill:m.billNumber||'',Note:m.note||'',Batch:m.batch||'',Qty:m.qty,Balance:m.balance}))},'stock-ledger.xlsx')">Download Excel</button><button class="btn" onclick="closeModal()">Close</button></div>`, true);
+}
+
+/* ================= customers & suppliers ================= */
+const partyState = { tab: 'customers', q: '' };
+RENDER.parties = async (el) => {
+  el.innerHTML = `<div class="page-head"><div><h1>Customers & Suppliers</h1><p>Profiles, credit limits, payment terms and account balances.</p></div><button class="btn red" onclick="partyModal()">+ Add Party</button></div>
+  <div class="card"><div class="toolbar"><button class="btn ${partyState.tab === 'customers' ? 'primary' : ''}" onclick="partyState.tab='customers';go('parties')">Customers</button><button class="btn ${partyState.tab === 'suppliers' ? 'primary' : ''}" onclick="partyState.tab='suppliers';go('parties')">Suppliers</button>
+    <input class="input" id="ptQ" placeholder="Search name / phone / GSTIN" value="${esc(partyState.q)}">${isBoss() ? `<button class="btn" onclick="agingModal('${partyState.tab === 'customers' ? 'receivable' : 'payable'}')">Aging Report</button>` : ''}</div><div id="ptList"><div class="loading">Loading…</div></div></div>`;
+  const load = async () => {
+    const all = await GET('/parties' + (partyState.q ? '?q=' + encodeURIComponent(partyState.q) : ''));
+    const sup = partyState.tab === 'suppliers';
+    const list = all.filter((p) => (sup ? p.type === 'supplier' : p.type !== 'supplier'));
+    $('#ptList').innerHTML = tableHtml([{ label: 'Name' }, { label: 'Type' }, { label: 'Phone' }, { label: 'GSTIN' }, { label: sup ? 'Terms' : 'Credit Limit' }, { label: sup ? 'Total Purchases' : 'Total Sales', right: 1 }, { label: 'Outstanding', right: 1 }, { label: 'Last Transaction' }],
+      list.map((p) => { const o = sup ? -p.balancePaise : p.balancePaise; const over = !sup && p.creditLimitPaise != null && o > p.creditLimitPaise;
+        return `<tr class="clickable" onclick="statementModal('${p.id}')"><td><b>${esc(p.name)}</b></td><td>${{ wholesale: 'Wholesale', retail: 'Retail', supplier: 'Supplier' }[p.type]}</td><td>${esc(p.phone || '—')}</td><td>${esc(p.gstin || '—')}</td><td>${sup ? (p.paymentTermsDays != null ? p.paymentTermsDays + ' days' : '—') : p.creditLimitPaise != null ? inr(p.creditLimitPaise) : 'No limit'}</td><td class="right">${inr(sup ? p.totalPurchasesPaise : p.totalSalesPaise)}</td><td class="right ${o > 0 ? (over ? 'down' : 'warn') : o < 0 ? 'up' : ''}">${o < 0 ? 'Advance ' + inr(-o) : inr(o)}${over ? ' <span class="badge red">over limit</span>' : ''}</td><td>${dshort(p.lastTransaction)}</td></tr>`; }), 'No parties here yet.');
+  };
+  let t; $('#ptQ').oninput = (e) => { clearTimeout(t); t = setTimeout(() => { partyState.q = e.target.value.trim(); load(); }, 220); };
+  await load();
+};
+async function partyModal(id) {
+  const p = id ? await GET('/parties/' + id) : { type: partyState.tab === 'suppliers' ? 'supplier' : 'retail' };
+  openModal(`<h2>${id ? 'Edit ' + esc(p.name) : 'Add Party'}</h2><div class="form-grid" id="ptf">
+    <div class="field"><label>Type</label><select class="select" name="type"><option value="retail">Retail customer</option><option value="wholesale">Wholesale buyer</option><option value="supplier">Supplier</option></select></div>
+    <div class="field" style="grid-column:span 2"><label>Name</label><input class="input" name="name" value="${esc(p.name)}"></div>
+    <div class="field"><label>Phone</label><input class="input" name="phone" value="${esc(p.phone)}"></div>
+    <div class="field"><label>Email</label><input class="input" name="email" value="${esc(p.email)}"></div>
+    <div class="field"><label>GSTIN</label><input class="input" name="gstin" value="${esc(p.gstin)}"></div>
+    <div class="field"><label>Credit limit (₹)</label><input class="input" name="limit" value="${p.creditLimitPaise != null ? rupees(p.creditLimitPaise) : ''}" placeholder="No limit"></div>
+    <div class="field"><label>Payment terms (days)</label><input class="input" name="terms" value="${p.paymentTermsDays ?? ''}" placeholder="Shop default"></div>
+    <div class="field"><label>Opening balance (₹, + they owe you)</label><input class="input" name="opening" value="${p.openingBalancePaise ? rupees(p.openingBalancePaise) : ''}"></div>
+    <div class="field" style="grid-column:1/-1"><label>Address</label><input class="input" name="address" value="${esc(p.address)}"></div></div>
+  <div class="modal-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn red" onclick="saveParty('${id || ''}')">Save</button></div>`);
+  $('#ptf [name=type]').value = p.type;
+}
+async function saveParty(id) {
+  const f = form($('#ptf'));
+  if (!f.name.trim()) return toast('Enter a name', true);
+  const body = { type: f.type, name: f.name, phone: f.phone || null, email: f.email || null, gstin: f.gstin || null, address: f.address || null,
+    creditLimitPaise: f.limit === '' ? null : Math.round(parseFloat(f.limit) * 100), paymentTermsDays: f.terms === '' ? null : parseInt(f.terms), openingBalancePaise: Math.round((parseFloat(f.opening) || 0) * 100) };
+  await api(id ? 'PATCH' : 'POST', id ? '/parties/' + id : '/parties', body);
+  toast('Saved'); closeModal(); refreshAfterChange();
+}
+async function statementModal(id) {
+  const s = await GET(`/parties/${id}/statement`), p = s.party, sup = p.type === 'supplier';
+  const K = { sale: 'Sale', purchase: 'Purchase', sale_return: 'Sale return', purchase_return: 'Purchase return', payment_in: 'Payment received', payment_out: 'Payment made' };
+  openModal(`<div class="printable"><div class="page-head"><div><h2>${esc(p.name)}</h2><p>${esc(p.phone || '')} ${p.gstin ? '· GSTIN ' + esc(p.gstin) : ''}${p.creditLimitPaise != null ? ' · Credit limit ' + inr(p.creditLimitPaise) : ''}</p></div>
+    <div class="kpi" style="text-align:right;min-height:0"><div class="label">${s.balancePaise >= 0 ? (sup ? 'Advance paid' : 'They owe you') : sup ? 'You owe them' : 'Advance received'}</div><div class="value ${s.balancePaise > 0 && !sup ? 'warn' : ''}">${inr(Math.abs(s.balancePaise))}</div></div></div>
+  ${tableHtml([{ label: 'Date' }, { label: 'Entry' }, { label: 'Ref' }, { label: 'Amount', right: 1 }, { label: 'Effect', right: 1 }, { label: 'Balance', right: 1 }],
+    [`<tr><td></td><td>Opening balance</td><td></td><td></td><td></td><td class="right">${inr(s.openingBalancePaise)}</td></tr>`, ...s.entries.map((e) => `<tr class="${e.kind.startsWith('payment') ? '' : 'clickable'}" ${e.kind.startsWith('payment') ? '' : `onclick="viewInvoice('${e.id}')"`}><td>${dshort(e.date)}</td><td>${K[e.kind]}</td><td>${esc(e.ref || '')}</td><td class="right">${inr(e.totalPaise)}</td><td class="right ${e.effectPaise > 0 ? 'down' : 'up'}">${e.effectPaise ? (e.effectPaise > 0 ? '+' : '−') + inr(Math.abs(e.effectPaise)) : 'paid'}</td><td class="right">${inr(e.balancePaise)}</td></tr>`)])}</div>
+  <div class="modal-actions">${s.whatsappReminder ? `<a class="btn" href="${s.whatsappReminder}" target="_blank" rel="noopener" style="margin-right:auto;text-decoration:none">WhatsApp reminder</a>` : ''}${isBoss() ? `<button class="btn" onclick="partyModal('${p.id}')">Edit</button>` : ''}<button class="btn green" onclick="paymentModal('${p.id}')">${sup ? 'Pay supplier' : 'Receive payment'}</button><button class="btn primary" onclick="window.print()">Print</button></div>`, true);
+}
+async function paymentModal(partyId, kind) {
+  const p = partyId ? await GET('/parties/' + partyId) : null;
+  kind = kind || (p && p.type === 'supplier' ? 'payment_out' : 'payment_in');
+  const parties = p ? [] : await GET('/parties');
+  openModal(`<h2>${kind === 'payment_in' ? 'Receive Payment' : 'Make Payment'}${p ? ': ' + esc(p.name) : ''}</h2>${p ? `<p class="muted">Current balance: ${p.balancePaise > 0 ? 'they owe you ' + inr(p.balancePaise) : p.balancePaise < 0 ? 'you owe them ' + inr(-p.balancePaise) : 'settled'}</p>` : ''}
+  <div class="form-grid" id="payf">${p ? '' : `<div class="field" style="grid-column:1/-1"><label>Party</label><select class="select" name="partyId">${parties.filter((x) => (kind === 'payment_in' ? x.type !== 'supplier' : x.type === 'supplier')).map((x) => `<option value="${x.id}">${esc(x.name)}</option>`).join('')}</select></div>`}
+    <div class="field"><label>Amount (₹)</label><input class="input" name="amount" value="${p ? Math.abs(rupees(p.balancePaise)) || '' : ''}"></div>
+    <div class="field"><label>Mode</label><select class="select" name="mode"><option value="upi">UPI</option><option value="cash">Cash</option><option value="bank">Bank</option><option value="card">Card</option></select></div>
+    <div class="field"><label>Date</label><input class="input" type="date" name="date" value="${today()}"></div>
+    <div class="field" style="grid-column:1/-1"><label>Note</label><input class="input" name="note"></div></div>
+  <div class="modal-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn red" onclick="savePayment('${kind}','${partyId || ''}')">Save</button></div>`);
+}
+async function savePayment(kind, partyId) {
+  const f = form($('#payf')); const amt = Math.round((parseFloat(f.amount) || 0) * 100);
+  if (amt <= 0) return toast('Enter an amount', true);
+  await api('POST', '/payments', { kind, partyId: partyId || f.partyId, amountPaise: amt, mode: f.mode, date: f.date, note: f.note || undefined });
+  toast('Payment recorded'); closeModal(); refreshAfterChange();
+}
+async function agingModal(side) {
+  const a = await GET('/insights/aging?side=' + side);
+  window._aging = a;
+  openModal(`<h2>${side === 'receivable' ? 'Receivables' : 'Payables'} Aging</h2><p class="muted">Total ${inr(a.totalPaise)} · overdue ${inr(a.overduePaise)} · due within 7 days ${inr(a.dueThisWeekPaise)}. Payments are applied to the oldest bills first.</p>
+  ${bars(a.buckets.map((b) => ({ label: b.label, value: b.amountPaise })))}<div style="height:12px"></div>
+  ${tableHtml([{ label: 'Party' }, { label: 'Bill' }, { label: 'Date' }, { label: 'Due' }, { label: 'Age', right: 1 }, { label: 'Outstanding', right: 1 }],
+    a.parties.flatMap((p) => p.bills.map((b) => `<tr><td><b>${esc(p.name)}</b></td><td>${esc(b.number)}</td><td>${dshort(b.date)}</td><td>${b.dueDate ? dshort(b.dueDate) : '—'} ${b.overdue ? '<span class="badge red">overdue</span>' : ''}</td><td class="right">${b.ageDays >= 999 ? '—' : b.ageDays + 'd'}</td><td class="right">${inr(b.outstandingPaise)}</td></tr>`)), 'Nothing outstanding.')}
+  <div class="modal-actions"><button class="btn" onclick="downloadXlsx({Aging:window._aging.parties.flatMap(p=>p.bills.map(b=>({Party:p.name,Bill:b.number,Date:b.date,Due:b.dueDate||'',AgeDays:b.ageDays,Outstanding:rupees(b.outstandingPaise),Overdue:b.overdue?'Yes':''})))},'aging-${side}.xlsx')">Download Excel</button><button class="btn" onclick="closeModal()">Close</button></div>`, true);
+}
+
+/* ================= finance ================= */
+RENDER.finance = async (el, tab) => {
+  tab = tab || window._finTab || 'pnl'; window._finTab = tab;
+  const P = periodRange();
+  const tabs = [['pnl', 'Profit & Loss'], ['cashflow', 'Cash Flow'], ['balance', 'Balance Sheet'], ['receivables', 'Receivables'], ['payables', 'Payables']];
+  el.innerHTML = `<div class="page-head"><div><h1>Finance</h1><p>Profit & loss, cash flow, receivables, payables and balance sheet for ${esc(P.label)}.</p></div><button class="btn" onclick="exportFinancials()">Export Financials</button></div>
+  <div class="card" style="margin-bottom:14px"><div class="tabs">${tabs.map(([k, l]) => `<button class="btn ${k === tab ? 'primary' : ''}" onclick="go('finance','${k}')">${l}</button>`).join('')}</div></div><div id="finBody"><div class="loading">Loading…</div></div>`;
+  const body = $('#finBody');
+  const row = (l, v, b, cls = '') => `<tr><td>${b ? '<b>' + l + '</b>' : l}</td><td class="right ${cls}">${b ? '<b>' + v + '</b>' : v}</td></tr>`;
+  if (tab === 'pnl') {
+    const [p, bs] = await Promise.all([GET('/insights/pnl?' + pq()), GET('/insights/inventory')]);
+    window._fin = { pnl: p };
+    const turnover = bs.stockAtCostPaise ? ((p.cogsPaise * (365 / Math.max(1, (Date.parse(p.to) - Date.parse(p.from)) / 864e5 + 1))) / bs.stockAtCostPaise).toFixed(1) : '—';
+    body.innerHTML = `<div class="grid two"><div class="card"><div class="card-title"><h2>Profit & Loss — ${esc(P.label)}</h2><span class="badge ${p.netProfitPaise >= 0 ? 'green' : 'red'}">${p.netProfitPaise >= 0 ? 'Profitable' : 'Loss'}</span></div>
+      <table><tbody>${row('Revenue (excl. GST)', inr(p.revenuePaise))}${row('Cost of Goods Sold', '−' + inr(p.cogsPaise))}${row('Gross Profit', inr(p.grossProfitPaise), 1)}${row('Operating Expenses', '−' + inr(p.operatingExpensesPaise))}${row('Other Income', inr(p.otherIncomePaise))}${row('Net Profit', inr(p.netProfitPaise), 1, p.netProfitPaise >= 0 ? 'up' : 'down')}</tbody></table>
+      <div class="stat-row" style="margin-top:15px"><div class="mini"><span>Gross Margin</span><b>${p.grossMarginPct ?? '—'}%</b></div><div class="mini"><span>Net Margin</span><b>${p.netMarginPct ?? '—'}%</b></div><div class="mini"><span>Expense Ratio</span><b>${p.expenseRatioPct ?? '—'}%</b></div><div class="mini"><span>COGS Ratio</span><b>${p.cogsRatioPct ?? '—'}%</b></div><div class="mini"><span>Stock Turnover</span><b>${turnover}×</b></div></div></div>
+      <div class="card"><div class="card-title"><h2>Operating expenses</h2><span class="muted">${inr(p.operatingExpensesPaise)}</span></div>${bars(p.expensesByCategory.map((e) => ({ label: e.category, value: e.amountPaise, cls: 'red' })), { empty: 'No expenses in this period.' })}</div></div>`;
+  } else if (tab === 'cashflow') {
+    const c = await GET('/insights/cashflow?' + pq()); window._fin = { cashflow: c };
+    body.innerHTML = `<div class="grid two"><div class="card"><div class="card-title"><h2>Cash Flow — ${esc(P.label)}</h2><span class="${c.netPaise >= 0 ? 'up' : 'down'}">Net ${inr(c.netPaise)}</span></div>
+      <table><tbody>${row('Opening cash & bank', inr(c.openingPaise), 1)}${c.inflows.map((x) => row('&nbsp;&nbsp;+ ' + x.label, inr(x.amountPaise), 0, 'up')).join('')}${c.outflows.map((x) => row('&nbsp;&nbsp;− ' + x.label, inr(x.amountPaise), 0, 'down')).join('')}${row('Closing cash & bank', inr(c.closingPaise), 1)}${row('&nbsp;&nbsp;Cash in hand', inr(c.closing.cashPaise))}${row('&nbsp;&nbsp;Bank & UPI', inr(c.closing.bankPaise))}</tbody></table></div>
+      <div class="card"><div class="card-title"><h2>In vs out</h2><span class="muted">Runway ${c.runwayMonths ?? '—'} months</span></div>${bars([...c.inflows.map((x) => ({ label: x.label, value: x.amountPaise, cls: 'green' })), ...c.outflows.map((x) => ({ label: x.label, value: x.amountPaise, cls: 'red' }))])}<p class="muted" style="font-size:12px">Runway: how many months the closing balance would cover at this period's rate of spending.</p></div></div>`;
+  } else if (tab === 'balance') {
+    const b = await GET('/insights/balance-sheet?date=' + P.to); window._fin = { balance: b };
+    body.innerHTML = `<div class="grid two"><div class="card"><div class="card-title"><h2>Balance Sheet</h2><span class="muted">${dlong(b.date)}</span></div>
+      <h3 style="font-size:13px">Assets</h3><table><tbody>${b.assets.map((a) => row(a.label, inr(a.amountPaise))).join('')}${row('Total Assets', inr(b.totalAssetsPaise), 1)}</tbody></table>
+      <h3 style="font-size:13px;margin-top:18px">Liabilities & Equity</h3><table><tbody>${b.liabilities.map((a) => row(a.label, inr(a.amountPaise))).join('')}${row("Owner's equity & retained earnings", inr(b.equityPaise))}${row('Total', inr(b.totalLiabilitiesPaise + b.equityPaise), 1)}</tbody></table></div>
+      <div class="card"><div class="card-title"><h2>What this shows</h2></div><p class="muted">Assets are what the shop owns or is owed; liabilities are what it owes. The difference is the owner's share. Fixed assets (furniture, fittings, equipment) are set in Settings.</p><p class="muted" style="font-size:12px">${esc(b.note)}</p></div></div>`;
+  } else {
+    const side = tab === 'receivables' ? 'receivable' : 'payable';
+    const a = await GET('/insights/aging?side=' + side); window._fin = { [tab]: a };
+    body.innerHTML = `<div class="grid kpis">${kpi('Total ' + (side === 'receivable' ? 'receivable' : 'payable'), inr(a.totalPaise))}${kpi('Overdue', inr(a.overduePaise), '', a.overduePaise ? 'down' : '')}${kpi('Due within 7 days', inr(a.dueThisWeekPaise), '', 'warn')}${kpi('Parties', a.parties.length)}</div>
+      <div class="grid two" style="margin-top:14px"><div class="card"><div class="card-title"><h2>By party</h2></div>${tableHtml([{ label: 'Party' }, { label: 'Phone' }, { label: 'Bills' }, { label: 'Outstanding', right: 1 }, { label: '' }],
+        a.parties.map((p) => `<tr><td><b>${esc(p.name)}</b></td><td>${esc(p.phone || '—')}</td><td>${p.bills.length}${p.bills.some((b) => b.overdue) ? ' <span class="badge red">overdue</span>' : ''}</td><td class="right">${inr(p.outstandingPaise)}</td><td><button class="btn" onclick="statementModal('${p.id}')">Statement</button></td></tr>`), 'Nothing outstanding.')}</div>
+      <div class="card"><div class="card-title"><h2>Aging</h2><button class="btn" onclick="agingModal('${side}')">Bill-wise</button></div>${bars(a.buckets.map((b) => ({ label: b.label, value: b.amountPaise })))}</div></div>`;
+  }
+};
+async function exportFinancials() {
+  const [p, c, b, r, pa] = await Promise.all([GET('/insights/pnl?' + pq()), GET('/insights/cashflow?' + pq()), GET('/insights/balance-sheet?date=' + periodRange().to), GET('/insights/aging?side=receivable'), GET('/insights/aging?side=payable')]);
+  const R = rupees;
+  downloadXlsx({
+    'Profit & Loss': [['Revenue', p.revenuePaise], ['Cost of goods sold', -p.cogsPaise], ['Gross profit', p.grossProfitPaise], ['Operating expenses', -p.operatingExpensesPaise], ['Other income', p.otherIncomePaise], ['Net profit', p.netProfitPaise]].map(([k, v]) => ({ Item: k, Amount: R(v) })),
+    'Cash Flow': [{ Item: 'Opening', Amount: R(c.openingPaise) }, ...c.inflows.map((x) => ({ Item: '+ ' + x.label, Amount: R(x.amountPaise) })), ...c.outflows.map((x) => ({ Item: '− ' + x.label, Amount: -R(x.amountPaise) })), { Item: 'Closing', Amount: R(c.closingPaise) }],
+    'Balance Sheet': [...b.assets.map((a) => ({ Section: 'Assets', Item: a.label, Amount: R(a.amountPaise) })), ...b.liabilities.map((a) => ({ Section: 'Liabilities', Item: a.label, Amount: R(a.amountPaise) })), { Section: 'Equity', Item: "Owner's equity", Amount: R(b.equityPaise) }],
+    Receivables: r.parties.map((x) => ({ Party: x.name, Outstanding: R(x.outstandingPaise) })), Payables: pa.parties.map((x) => ({ Party: x.name, Outstanding: R(x.outstandingPaise) })),
+  }, `financials-${p.from}-to-${p.to}.xlsx`);
+}
+
+/* ================= expenses ================= */
+RENDER.expenses = async (el) => {
+  const P = periodRange(); const e = await GET('/insights/expenses?' + pq()); window._exp = e;
+  el.innerHTML = `<div class="page-head"><div><h1>Expenses</h1><p>Operating expenses, recurring costs, taxes and payment methods for ${esc(P.label)}.</p></div><div class="actions"><button class="btn" onclick="go('scanner')">⧉ Scan an expense bill</button><button class="btn red" onclick="expenseModal()">+ Add Expense</button></div></div>
+  <div class="grid kpis">${kpi('Total in period', inr(e.totalPaise), `<div class="change muted">${e.count} entries</div>`)}${kpi('Recurring', inr(e.recurringPaise), '<div class="change muted">Monthly commitments</div>')}${kpi('Highest Category', e.highest ? esc(e.highest.category) : '—', e.highest ? `<div class="change muted">${inr(e.highest.amountPaise)}</div>` : '', 'small')}${kpi('Bank Charges', inr(e.bankChargesPaise), '<div class="change muted">In period</div>')}</div>
+  <div class="card" style="margin-top:14px"><div class="card-title"><h2>Expense entries</h2><button class="btn" onclick="downloadXlsx({Expenses:window._exp.items.map(x=>({Date:x.date,Category:x.category,Description:x.note||'',Mode:x.mode,GST:rupees(x.taxPaise),Amount:rupees(x.amountPaise),Recurring:x.recurring?'Yes':'No'}))},'expenses.xlsx')">Export</button></div>
+  ${tableHtml([{ label: 'Date' }, { label: 'Category' }, { label: 'Description' }, { label: 'Payment' }, { label: 'GST', right: 1 }, { label: 'Amount', right: 1 }, { label: 'Recurring' }, { label: '' }],
+    e.items.map((x) => `<tr><td>${dshort(x.date)}</td><td>${esc(x.category)}</td><td>${esc(x.note || '')}</td><td>${PAY[x.mode]}</td><td class="right">${inr(x.taxPaise)}</td><td class="right">${inr(x.amountPaise)}</td><td>${x.recurring ? '<span class="badge blue">Yes</span>' : 'No'}</td><td>${x.attachmentId ? `<button class="btn" onclick="openFile('${x.attachmentId}')">Bill</button> ` : ''}<button class="btn" onclick="deleteExpense('${x.id}')" aria-label="Delete">×</button></td></tr>`), 'No expenses in this period.')}</div>`;
+};
+function expenseModal() {
+  openModal(`<h2>Add Expense</h2><div class="form-grid" id="exf">
+    <div class="field"><label>Date</label><input class="input" type="date" name="date" value="${today()}"></div>
+    <div class="field"><label>Category</label><input class="input" name="category" list="exCats" placeholder="Rent, Salary, Electricity…"><datalist id="exCats">${['Rent', 'Salary', 'Electricity', 'Internet', 'Marketing', 'Transport', 'Packaging', 'Repairs', 'Bank charges', 'GST payment', 'Tea & snacks', 'Other'].map((c) => `<option value="${c}">`).join('')}</datalist></div>
+    <div class="field"><label>Payment</label><select class="select" name="mode"><option value="cash">Cash</option><option value="upi">UPI</option><option value="bank">Bank</option><option value="card">Card</option></select></div>
+    <div class="field"><label>Amount (₹, incl. GST)</label><input class="input" name="amount"></div>
+    <div class="field"><label>GST included (₹)</label><input class="input" name="tax" placeholder="0"></div>
+    <div class="field"><label><input type="checkbox" name="recurring"> Recurring monthly</label></div>
+    <div class="field" style="grid-column:1/-1"><label>Description</label><input class="input" name="note"></div>
+    <div class="field" style="grid-column:1/-1"><label>Bill copy (optional)</label><input type="file" id="exFile" accept="image/*,application/pdf"></div></div>
+  <div class="modal-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn red" onclick="saveExpense()">Save expense</button></div>`);
+}
+async function saveExpense() {
+  const f = form($('#exf')); const amt = Math.round((parseFloat(f.amount) || 0) * 100);
+  if (amt <= 0) return toast('Enter the amount', true);
+  let attachmentId;
+  const file = $('#exFile').files[0];
+  if (file) { const fd = new FormData(); fd.append('file', file); attachmentId = (await api('POST', '/files', fd, { form: true })).id; }
+  await api('POST', '/payments', { kind: 'expense', date: f.date, category: f.category || 'Other', mode: f.mode, amountPaise: amt, taxPaise: Math.round((parseFloat(f.tax) || 0) * 100), recurring: f.recurring, note: f.note || undefined, attachmentId });
+  toast('Expense saved'); closeModal(); refreshAfterChange();
+}
+async function deleteExpense(id) { if (!confirm('Delete this expense?')) return; await api('DELETE', '/payments/' + id); toast('Deleted'); go('expenses'); }
+
+/* ================= GST / tax ================= */
+RENDER.tax = async (el) => {
+  const P = periodRange();
+  const [t, g] = await Promise.all([GET('/insights/tax?' + pq()), GET('/reports/gst?month=' + P.to.slice(0, 7))]);
+  window._gst = g;
+  el.innerHTML = `<div class="page-head"><div><h1>GST / Tax Centre</h1><p>Input tax, output tax and net liability for ${esc(P.label)}.</p></div><button class="btn" onclick="exportGst()">Export Tax Data</button></div>
+  <div class="grid kpis">${kpi('Output GST', inr(t.outputGstPaise), '<div class="change muted">On sales</div>')}${kpi('Input GST', inr(t.inputGstPaise), `<div class="change muted">Purchases + ${inr(t.expenseGstPaise)} on expenses</div>`)}${kpi('Net GST Liability', inr(t.netLiabilityPaise), `<div class="change muted">${t.netLiabilityPaise < 0 ? 'Credit carried forward' : 'Before adjustments'}</div>`, t.netLiabilityPaise > 0 ? 'warn' : 'up')}${kpi('Taxable Sales', inr(t.taxableSalesPaise), `<div class="change muted">Purchases ${short(t.taxablePurchasesPaise)}</div>`)}</div>
+  <div class="grid two" style="margin-top:14px"><div class="card"><div class="card-title"><h2>Taxable sales by GST rate</h2></div>${bars(t.byRate.filter((r) => r.salesTaxablePaise).map((r) => ({ label: r.ratePct + '%', value: r.salesTaxablePaise, display: short(r.salesTaxablePaise) + ' · tax ' + short(r.salesTaxPaise) })))}</div>
+  <div class="card"><div class="card-title"><h2>Tax Fields Checklist</h2></div><div class="bar-list">
+    <div class="mini">GSTIN <b>${t.gstin ? esc(t.gstin) : '<span class="down">Not set — add it in Settings</span>'}</b></div>
+    <div class="mini">HSN codes on products <b>${t.checklist.productsWithHsn} of ${t.checklist.productsTotal}</b></div>
+    <div class="mini">CGST / SGST / IGST split <b>Automatic, by party GSTIN state</b></div>
+    <div class="mini">Prices <b>${ME.shop.taxInclusive ? 'Include GST (MRP style)' : 'GST added on top'}</b></div></div></div></div>
+  <div class="card" style="margin-top:14px"><div class="card-title"><h2>HSN-wise summary — ${esc(g.month)}</h2><span class="muted">For GSTR-1 / GSTR-3B</span></div>
+  ${tableHtml([{ label: 'Type' }, { label: 'HSN' }, { label: 'Rate' }, { label: 'B2B' }, { label: 'Qty', right: 1 }, { label: 'Taxable', right: 1 }, { label: 'CGST', right: 1 }, { label: 'SGST', right: 1 }, { label: 'IGST', right: 1 }],
+    g.rows.map((r) => `<tr><td>${TYPE[r.type]}</td><td>${esc(r.hsn || '—')}</td><td>${r.gstRate}%</td><td>${r.b2b ? 'Yes' : ''}</td><td class="right">${qty(r.qty)}</td><td class="right">${inr2(r.taxablePaise)}</td><td class="right">${inr2(r.cgstPaise)}</td><td class="right">${inr2(r.sgstPaise)}</td><td class="right">${inr2(r.igstPaise)}</td></tr>`), 'No taxable bills this month.')}</div>`;
+};
+function exportGst() { const g = window._gst; downloadXlsx({ 'GST by HSN': g.rows.map((r) => ({ Type: TYPE[r.type], HSN: r.hsn, 'Rate %': r.gstRate, B2B: r.b2b ? 'Yes' : 'No', Qty: r.qty, Taxable: rupees(r.taxablePaise), CGST: rupees(r.cgstPaise), SGST: rupees(r.sgstPaise), IGST: rupees(r.igstPaise) })) }, `gst-${g.month}.xlsx`); }
+</script>
+<script>
+/* ================= reports ================= */
+const REPORTS = [
+  ['sales', 'Sales Register', 'Daily sales, invoices, returns and payment modes.'],
+  ['purchases', 'Purchase Register', 'Supplier bills, due dates and returns.'],
+  ['valuation', 'Stock Valuation', 'Inventory value at cost, selling price and MRP.'],
+  ['ledger', 'Stock Ledger', 'Every stock-in and stock-out movement.'],
+  ['pnl', 'Profit & Loss', 'Revenue, COGS, expenses and net profit.'],
+  ['cashflow', 'Cash Flow', 'Cash inflows, outflows and closing balance.'],
+  ['recv', 'Receivable Aging', 'Customer dues by aging bucket.'],
+  ['pay', 'Payable Aging', 'Supplier dues and payment schedules.'],
+  ['gst', 'GST Summary', 'Output, input and HSN-wise GST.'],
+  ['low', 'Low Stock', 'Products at or below reorder level.'],
+  ['expiry', 'Expiry Report', 'Batches expiring soon or already expired.'],
+  ['dead', 'Dead Stock', 'Inventory without sales for 90+ days.'],
+];
+RENDER.reports = async (el) => {
+  const P = periodRange();
+  el.innerHTML = `<div class="page-head"><div><h1>Reports Centre</h1><p>Operational, inventory, financial and tax reports for ${esc(P.label)}. Change the period at the top.</p></div><div class="actions">${isBoss() ? `<button class="btn" onclick="importModal()">Import products from Excel</button><button class="btn primary" onclick="downloadServer('/excel/export','stockbook-full-backup.xlsx')">Full Excel backup</button>` : ''}</div></div>
+  <div class="grid report-grid">${REPORTS.map(([k, t, d]) => `<div class="report"><h3>${t}</h3><p>${d}</p><br><button class="btn" onclick="runReport('${k}')">Generate</button></div>`).join('')}</div>`;
+};
+async function runReport(key) {
+  const P = periodRange(), R = rupees;
+  let title = REPORTS.find((r) => r[0] === key)[1], rows = [];
+  const inv = async (type) => [...(await GET(`/invoices?type=${type}&${pq()}&limit=200`)), ...(await GET(`/invoices?type=${type}_return&${pq()}&limit=200`))]
+    .map((r) => ({ Date: r.date, Number: r.number, Type: TYPE[r.type], Party: r.partyName || 'Walk-in', 'Pay mode': PAY[r.payMode], Total: R(r.totalPaise), Paid: R(r.paidPaise), Due: R(Math.max(0, r.totalPaise - r.paidPaise)), 'Due date': r.dueDate || '', Status: r.status }));
+  if (key === 'sales') rows = await inv('sale');
+  if (key === 'purchases') rows = await inv('purchase');
+  if (key === 'valuation') rows = (await GET('/products?limit=500')).items.map((p) => ({ Product: p.name, SKU: p.sku || '', Category: p.category || '', Stock: p.stock, Cost: R(p.costPaise), 'Value at cost': R(Math.max(0, p.stock) * p.costPaise), 'Value at price': R(Math.max(0, p.stock) * p.pricePaise), 'Value at MRP': R(Math.max(0, p.stock) * (p.mrpPaise || p.pricePaise)) }));
+  if (key === 'ledger') rows = (await GET(`/insights/stock-ledger?${pq()}&limit=2000`)).map((m) => ({ Date: m.date, Product: m.product, Movement: m.reason, Bill: m.billNumber || '', Note: m.note || '', Batch: m.batch || '', Qty: m.qty, Balance: m.balance }));
+  if (key === 'pnl') { const p = await GET('/insights/pnl?' + pq()); rows = [['Revenue (excl. GST)', p.revenuePaise], ['Cost of goods sold', -p.cogsPaise], ['Gross profit', p.grossProfitPaise], ...p.expensesByCategory.map((e) => ['Expense: ' + e.category, -e.amountPaise]), ['Other income', p.otherIncomePaise], ['Net profit', p.netProfitPaise]].map(([k, v]) => ({ Item: k, Amount: R(v) })); }
+  if (key === 'cashflow') { const c = await GET('/insights/cashflow?' + pq()); rows = [{ Item: 'Opening balance', Amount: R(c.openingPaise) }, ...c.inflows.map((x) => ({ Item: '+ ' + x.label, Amount: R(x.amountPaise) })), ...c.outflows.map((x) => ({ Item: '− ' + x.label, Amount: -R(x.amountPaise) })), { Item: 'Closing balance', Amount: R(c.closingPaise) }]; }
+  if (key === 'recv' || key === 'pay') rows = (await GET('/insights/aging?side=' + (key === 'recv' ? 'receivable' : 'payable'))).parties.flatMap((p) => p.bills.map((b) => ({ Party: p.name, Bill: b.number, Date: b.date, 'Due date': b.dueDate || '', 'Age (days)': b.ageDays >= 999 ? '' : b.ageDays, Outstanding: R(b.outstandingPaise), Overdue: b.overdue ? 'Yes' : '' })));
+  if (key === 'gst') rows = (await GET('/reports/gst?month=' + P.to.slice(0, 7))).rows.map((r) => ({ Type: TYPE[r.type], HSN: r.hsn, 'Rate %': r.gstRate, B2B: r.b2b ? 'Yes' : 'No', Taxable: R(r.taxablePaise), CGST: R(r.cgstPaise), SGST: R(r.sgstPaise), IGST: R(r.igstPaise) }));
+  if (key === 'low') rows = (await GET('/reports/low-stock')).map((p) => ({ Product: p.name, Stock: p.stock, 'Reorder level': p.reorderLevel, 'Last supplier': p.lastSupplier || '' }));
+  if (key === 'expiry') rows = (await GET('/reports/expiring?days=' + (ME.shop.expiryWarnDays || 30))).map((b) => ({ Product: b.name, Batch: b.batchNo, Expiry: b.expiry, 'Days left': b.daysLeft, Qty: b.qty, 'Value at cost': R(b.valueAtCostPaise) }));
+  if (key === 'dead') rows = (await GET('/insights/dead-stock?days=90')).map((p) => ({ Product: p.name, Category: p.category || '', Stock: p.stock, 'Value at cost': R(p.valuePaise), 'Last sale': p.lastSale || 'Never', 'Days idle': p.daysSinceSale }));
+  window._report = { title, rows };
+  const cols = rows.length ? Object.keys(rows[0]) : [];
+  const fmt = (v) => (typeof v === 'number' ? v.toLocaleString('en-IN', { maximumFractionDigits: 2 }) : esc(v));
+  openModal(`<h2>${title}</h2><p class="muted">${esc(P.label)} · ${rows.length} rows</p>
+  ${tableHtml(cols.map((c) => ({ label: esc(c), right: typeof rows[0][c] === 'number' })), rows.slice(0, 500).map((r) => `<tr>${cols.map((c) => `<td class="${typeof r[c] === 'number' ? 'right' : ''}">${fmt(r[c])}</td>`).join('')}</tr>`), 'Nothing to report for this period.')}
+  <div class="modal-actions"><button class="btn" onclick="closeModal()">Close</button><button class="btn primary" onclick="window.print()">Print</button><button class="btn red" onclick="downloadXlsx({[window._report.title]:window._report.rows}, window._report.title.toLowerCase().replace(/\\W+/g,'-')+'.xlsx')">Download Excel</button></div>`, true);
+}
+function importModal() {
+  openModal(`<h2>Import products from Excel</h2><p class="muted">Use .xlsx or .csv with a header row: Name, Barcode, SKU, Category, Cost, Price, MRP, GST %, Stock… Column names are matched automatically. You'll see a preview before anything is saved.</p>
+  <div class="row"><input type="file" id="xlFile" accept=".xlsx,.csv"> <button class="btn" onclick="downloadServer('/excel/products/template','import-template.xlsx')">Template</button></div>
+  <label style="display:block;margin-top:10px"><input type="checkbox" id="xlSet"> The Stock column is a fresh stock count (adjust existing products to match it)</label>
+  <div id="xlOut" style="margin-top:12px"></div>
+  <div class="modal-actions"><button class="btn" onclick="closeModal()">Close</button><button class="btn" onclick="runImport(false)">Preview</button><button class="btn red" onclick="runImport(true)">Import</button></div>`);
+}
+async function runImport(commit) {
+  const f = $('#xlFile').files[0]; if (!f) return toast('Choose a file first', true);
+  const fd = new FormData(); fd.append('file', f);
+  const r = await api('POST', `/excel/products/import?commit=${commit}&stockMode=${$('#xlSet').checked ? 'set' : 'opening'}`, fd, { form: true });
+  const pv = r.preview;
+  $('#xlOut').innerHTML = `<div class="notice">${commit ? `Imported: ${r.created} new, ${r.updated} updated.` : `${pv.toCreate} new and ${pv.toUpdate} existing products found in ${pv.totalRows} rows.`}</div><p class="muted" style="font-size:12px">${Object.entries(pv.mapping).map(([h, m]) => `${esc(h)} → <b>${m || 'extra detail'}</b>`).join(' · ')}</p>`;
+  if (commit) refreshAfterChange();
+}
+
+/* ================= analytics ================= */
+RENDER.analytics = async (el) => {
+  const months = window._anMonths || 6;
+  const a = await GET('/insights/analytics?months=' + months); window._an = a;
+  const maxRev = Math.max(...a.salesByCategory.map((c) => c.revenuePaise), 1);
+  el.innerHTML = `<div class="page-head"><div><h1>Analytics</h1><p>Sales, margins and product performance from ${dlong(a.from)} to ${dlong(a.to)}.</p></div><select class="select" onchange="window._anMonths=+this.value;go('analytics')"><option value="6">Last 6 months</option><option value="12">Last 12 months</option><option value="3">Last 3 months</option></select></div>
+  <div class="grid two"><div class="card chart-card"><div class="card-title"><h2>Monthly Revenue</h2><div class="legend"><span><span class="dot" style="color:#13201c"></span>Sales</span><span class="down"><span class="dot"></span>Purchases</span></div></div><div class="chart">${lineChart([{ values: a.monthly.map((m) => m.salesPaise), color: '#13201c', width: 4.5, fill: 1 }, { values: a.monthly.map((m) => m.purchasesPaise), color: '#a3172b', width: 2.5 }], a.monthly.map((m) => m.label), { title: 'Monthly sales and purchases' })}</div></div>
+  <div class="card"><div class="card-title"><h2>Sales by Category</h2></div>${bars(a.salesByCategory.map((c) => ({ label: c.category, value: c.revenuePaise })))}
+    <div class="card-title" style="margin-top:22px"><h2>How customers pay</h2></div>${bars(a.paymentModes.map((m) => ({ label: PAY[m.mode] + ' · ' + m.bills + ' bills', value: m.totalPaise, cls: 'green' })))}</div></div>
+  <div class="card" style="margin-top:14px"><div class="card-title"><h2>Product Profitability</h2><button class="btn" onclick="downloadXlsx({Products:window._an.products.map(p=>({Product:p.name,Category:p.category,Units:p.units,Revenue:rupees(p.revenuePaise),COGS:rupees(p.cogsPaise),'Gross profit':rupees(p.grossProfitPaise),'Margin %':p.marginPct}))},'product-profitability.xlsx')">Export</button></div>
+  ${tableHtml([{ label: 'Product' }, { label: 'Category' }, { label: 'Units', right: 1 }, { label: 'Revenue', right: 1 }, { label: 'COGS', right: 1 }, { label: 'Gross Profit', right: 1 }, { label: 'Margin', right: 1 }],
+    a.products.map((p) => `<tr><td><b>${esc(p.name)}</b></td><td>${esc(p.category)}</td><td class="right">${qty(p.units)}</td><td class="right">${inr(p.revenuePaise)}</td><td class="right">${inr(p.cogsPaise)}</td><td class="right">${inr(p.grossProfitPaise)}</td><td class="right ${p.marginPct >= 0 ? 'up' : 'down'}">${p.marginPct ?? '—'}%</td></tr>`), 'No sales yet.')}</div>`;
+  $('#analytics select').value = String(months);
+};
+
+/* ================= settings ================= */
+RENDER.settings = async (el, tab) => {
+  tab = tab || window._setTab || 'shop'; window._setTab = tab;
+  if (tab === 'data') return renderDataManager(el);
+  await renderShopSettings(el);
+  el.querySelector('.page-head').insertAdjacentHTML('afterend', settingsTabs('shop'));
+};
+const settingsTabs = (t) => `<div class="card" style="margin-bottom:14px"><div class="tabs"><button class="btn ${t === 'shop' ? 'primary' : ''}" onclick="go('settings','shop')">Shop settings</button><button class="btn ${t === 'data' ? 'primary' : ''}" onclick="go('settings','data')">Data manager — view, add, edit & delete records</button></div></div>`;
+async function renderShopSettings(el) {
+  const s = ME.shop;
+  const staff = isBoss() ? await GET('/auth/staff').catch(() => []) : [];
+  const ROLE = { owner: 'Full access', manager: 'Everything except shop settings and staff', cashier: 'Sales, customers and money received' };
+  el.innerHTML = `<div class="page-head"><div><h1>Settings</h1><p>Business, invoice, inventory, tax, users and data configuration.</p></div>${ME.role === 'owner' ? '<button class="btn primary" onclick="saveSettings()">Save Changes</button>' : ''}</div>
+  ${ME.role !== 'owner' ? '<div class="notice">Only the owner can change settings.</div>' : ''}
+  <div class="grid two" id="setf">
+    <div class="card"><div class="card-title"><h2>Business Profile</h2></div><div class="form-grid">
+      <div class="field"><label>Business Name</label><input class="input" name="name" value="${esc(s.name)}"></div>
+      <div class="field"><label>Phone</label><input class="input" name="phone" value="${esc(s.phone)}"></div>
+      <div class="field"><label>Email</label><input class="input" name="email" value="${esc(s.email)}"></div>
+      <div class="field"><label>GSTIN</label><input class="input" name="gstin" value="${esc(s.gstin)}"></div>
+      <div class="field"><label>Shop type</label><select class="select" name="shopType">${['grocery', 'cosmetics', 'pharmacy', 'apparel', 'electronics', 'hardware', 'stationery', 'general'].map((t) => `<option ${t === s.shopType ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
+      <div class="field"><label>Currency</label><select class="select" disabled><option>INR ₹</option></select></div>
+      <div class="field" style="grid-column:1/-1"><label>Address</label><input class="input" name="address" value="${esc(s.address)}"></div></div></div>
+    <div class="card"><div class="card-title"><h2>Invoice Settings</h2></div><div class="form-grid">
+      <div class="field"><label>Invoice Prefix</label><input class="input" name="invoicePrefix" value="${esc(s.invoicePrefix || '')}" placeholder="Blank = S/2026-27/0001"></div>
+      <div class="field"><label>Next Number</label><input class="input" name="nextInvoiceNumber" value="${s.nextInvoiceNumber}"></div>
+      <div class="field"><label>Default GST for new products</label><select class="select" name="defaultGst">${[0, 3, 5, 12, 18, 28, 40].map((g) => `<option value="${g}" ${g * 100 === s.defaultGstBps ? 'selected' : ''}>${g}%</option>`).join('')}</select></div>
+      <div class="field"><label>Customer payment terms</label><select class="select" name="paymentTermsDays">${[0, 7, 15, 30, 45, 60].map((d) => `<option value="${d}" ${d === s.paymentTermsDays ? 'selected' : ''}>${d ? d + ' days' : 'Immediate'}</option>`).join('')}</select></div>
+      <div class="field"><label>Prices</label><select class="select" name="taxInclusive"><option value="1" ${s.taxInclusive ? 'selected' : ''}>Include GST (MRP style)</option><option value="0" ${s.taxInclusive ? '' : 'selected'}>GST added on top</option></select></div>
+      <div class="field"><label>Round bills to ₹1</label><select class="select" name="roundToRupee"><option value="1" ${s.roundToRupee ? 'selected' : ''}>Yes</option><option value="0" ${s.roundToRupee ? '' : 'selected'}>No</option></select></div></div></div>
+    <div class="card"><div class="card-title"><h2>Inventory Controls</h2></div><div class="form-grid">
+      <div class="field"><label>Low Stock Warning</label><input class="input" value="At each product's reorder level" disabled></div>
+      <div class="field"><label>Expiry Warning (days)</label><input class="input" name="expiryWarnDays" value="${s.expiryWarnDays}"></div>
+      <div class="field"><label>Negative Stock</label><select class="select" name="allowNegativeStock"><option value="0" ${s.allowNegativeStock ? '' : 'selected'}>Not allowed</option><option value="1" ${s.allowNegativeStock ? 'selected' : ''}>Allowed</option></select></div>
+      <div class="field"><label>Cost Method</label><select class="select" name="costMethod"><option value="average" ${s.costMethod === 'average' ? 'selected' : ''}>Weighted Average</option><option value="latest" ${s.costMethod === 'latest' ? 'selected' : ''}>Latest purchase price</option></select></div>
+      <div class="field" style="grid-column:span 2"><label>Extra product details (comma separated)</label><input class="input" name="extraFields" value="${esc((s.extraFields || []).join(', '))}" placeholder="shade, size, flavour"></div></div></div>
+    <div class="card"><div class="card-title"><h2>Opening Balances & Assets</h2></div><div class="form-grid">
+      <div class="field"><label>Opening cash (₹)</label><input class="input" name="openingCash" value="${rupees(s.openingCashPaise)}"></div>
+      <div class="field"><label>Opening bank (₹)</label><input class="input" name="openingBank" value="${rupees(s.openingBankPaise)}"></div>
+      <div class="field"><label>Fixed assets (₹)</label><input class="input" name="fixedAssets" value="${rupees(s.fixedAssetsPaise)}"></div></div>
+      <p class="muted" style="font-size:12px">Fixed assets are furniture, fittings and equipment. They appear on the balance sheet.</p></div>
+    <div class="card" style="grid-column:1/-1"><div class="card-title"><h2>Users & Roles</h2>${ME.role === 'owner' ? '<button class="btn" onclick="staffModal()">+ Add user</button>' : ''}</div>
+      ${staff.length ? `<table><tbody>${staff.map((u) => `<tr><td><b>${esc(u.name)}</b><br><span class="muted">${esc(u.email)}</span></td><td>${u.role[0].toUpperCase() + u.role.slice(1)}</td><td class="muted">${ROLE[u.role]}</td><td><span class="badge green">Active</span></td></tr>`).join('')}</tbody></table>` : '<p class="muted">Only owners and managers can see the staff list.</p>'}
+      <p class="muted" style="font-size:12px">AI bill reading: <b>${ME.aiEnabled ? 'on' : 'off'}</b>${ME.aiEnabled ? '' : ' — set ANTHROPIC_API_KEY in the server\'s .env file to turn it on. The free on-device OCR works without it.'}</p></div>
+  </div>`;
+  if (ME.role !== 'owner') $$('#setf input,#setf select').forEach((i) => (i.disabled = true));
+}
+async function saveSettings() {
+  const f = form($('#setf'));
+  const body = { name: f.name, phone: f.phone || null, email: f.email || null, gstin: f.gstin || null, address: f.address || null, shopType: f.shopType,
+    invoicePrefix: f.invoicePrefix || null, defaultGstBps: Math.round(parseFloat(f.defaultGst) * 100), paymentTermsDays: +f.paymentTermsDays,
+    taxInclusive: f.taxInclusive === '1', roundToRupee: f.roundToRupee === '1', expiryWarnDays: parseInt(f.expiryWarnDays) || 30, allowNegativeStock: f.allowNegativeStock === '1',
+    costMethod: f.costMethod, extraFields: f.extraFields.split(',').map((x) => x.trim()).filter(Boolean),
+    openingCashPaise: Math.round((parseFloat(f.openingCash) || 0) * 100), openingBankPaise: Math.round((parseFloat(f.openingBank) || 0) * 100), fixedAssetsPaise: Math.round((parseFloat(f.fixedAssets) || 0) * 100) };
+  if (f.invoicePrefix && +f.nextInvoiceNumber) body.nextInvoiceNumber = +f.nextInvoiceNumber;
+  await api('PATCH', '/auth/shop', body);
+  ME = await GET('/auth/me'); $('#brandName').textContent = ME.shop.name;
+  toast('Settings saved'); go('settings');
+}
+/* ================= data manager ================= */
+const dm = { tab: 'products', q: '', kind: '', type: '' };
+const DM_TABS = [['products', 'Products'], ['parties', 'Customers & suppliers'], ['bills', 'Bills'], ['payments', 'Payments & expenses'], ['categories', 'Categories'], ['users', 'Users'], ['import', 'Import & export']];
+const KIND = { payment_in: 'Payment received', payment_out: 'Payment made', expense: 'Expense', income: 'Other income', deposit: 'Cash → bank', withdraw: 'Bank → cash' };
+async function renderDataManager(el) {
+  window._setTab = 'data';
+  el.innerHTML = `<div class="page-head"><div><h1>Settings</h1><p>Every record in one place: find it, change it, remove it, or add new entries.</p></div></div>${settingsTabs('data')}
+  ${isBoss() ? '' : '<div class="notice">Your role can view records but only owners and managers can change them.</div>'}
+  <div class="card"><div class="tabs" style="margin-bottom:14px">${DM_TABS.map(([k, l]) => `<button class="btn ${dm.tab === k ? 'primary' : ''}" onclick="dm.tab='${k}';dm.q='';dm.kind='';dm.type='';renderDataManager($('#settings'))">${l}</button>`).join('')}</div>
+  <div id="dmBar" class="toolbar"></div><div id="dmBody"><div class="loading">Loading…</div></div></div>`;
+  const bar = $('#dmBar'), body = $('#dmBody'), boss = isBoss(), owner = ME.role === 'owner';
+  const search = (ph) => `<input class="input" id="dmQ" placeholder="${ph}" value="${esc(dm.q)}">`;
+  const wireSearch = (fn) => { let t; const q = $('#dmQ'); if (q) q.oninput = (e) => { clearTimeout(t); t = setTimeout(() => { dm.q = e.target.value.trim(); fn(); }, 220); }; };
+  const act = (label, fn, cls = '') => `<button class="btn ${cls}" onclick="event.stopPropagation();${fn}">${label}</button>`;
+
+  if (dm.tab === 'products') {
+    bar.innerHTML = search('Search name, SKU, barcode') + (boss ? act('+ Add product', 'productModal()', 'red') + act('Stock adjustment', 'adjustModal()') : '');
+    const load = async () => {
+      const r = await GET('/products?limit=500&q=' + encodeURIComponent(dm.q)); window._dmRows = r.items;
+      body.innerHTML = tableHtml([{ label: 'Product' }, { label: 'SKU' }, { label: 'Barcode' }, { label: 'Category' }, { label: 'Cost', right: 1 }, { label: 'Price', right: 1 }, { label: 'GST', right: 1 }, { label: 'Stock', right: 1 }, { label: '' }],
+        r.items.map((p, i) => `<tr><td><b>${esc(p.name)}</b></td><td>${esc(p.sku || '')}</td><td>${esc(p.barcode || '')}</td><td>${esc(p.category || '')}</td><td class="right">${inr2(p.costPaise)}</td><td class="right">${inr2(p.pricePaise)}</td><td class="right">${p.gstBps / 100}%</td><td class="right">${qty(p.stock)}</td>
+          <td>${boss ? act('Edit', `productModal(window._dmRows[${i}])`) + act('Adjust', `adjustModal('${p.id}')`) + act('Archive', `archiveProduct('${p.id}')`) : act('View', `productModal(window._dmRows[${i}])`)}</td></tr>`), 'No products. Add one, or import a list in "Import & export".');
+    };
+    wireSearch(load); return load();
+  }
+  if (dm.tab === 'parties') {
+    bar.innerHTML = search('Search name, phone, GSTIN') + `<select class="select" id="dmType"><option value="">All types</option><option value="retail">Retail customers</option><option value="wholesale">Wholesale buyers</option><option value="supplier">Suppliers</option></select>` + act('+ Add customer / supplier', 'partyModal()', 'red');
+    $('#dmType').value = dm.type; $('#dmType').onchange = (e) => { dm.type = e.target.value; load(); };
+    const load = async () => {
+      const r = (await GET('/parties' + (dm.q ? '?q=' + encodeURIComponent(dm.q) : ''))).filter((p) => !dm.type || p.type === dm.type);
+      body.innerHTML = tableHtml([{ label: 'Name' }, { label: 'Type' }, { label: 'Phone' }, { label: 'Email' }, { label: 'GSTIN' }, { label: 'Credit limit', right: 1 }, { label: 'Terms' }, { label: 'Balance', right: 1 }, { label: '' }],
+        r.map((p) => `<tr><td><b>${esc(p.name)}</b></td><td>${{ retail: 'Retail', wholesale: 'Wholesale', supplier: 'Supplier' }[p.type]}</td><td>${esc(p.phone || '')}</td><td>${esc(p.email || '')}</td><td>${esc(p.gstin || '')}</td><td class="right">${p.creditLimitPaise != null ? inr(p.creditLimitPaise) : '—'}</td><td>${p.paymentTermsDays != null ? p.paymentTermsDays + ' days' : 'Default'}</td><td class="right">${p.balancePaise > 0 ? 'Receive ' + inr(p.balancePaise) : p.balancePaise < 0 ? 'Pay ' + inr(-p.balancePaise) : '—'}</td>
+          <td>${boss ? act('Edit', `partyModal('${p.id}')`) : ''}${act('Statement', `statementModal('${p.id}')`)}${owner ? act('Delete', `deleteParty('${p.id}')`) : ''}</td></tr>`), 'No customers or suppliers yet.');
+    };
+    wireSearch(load); return load();
+  }
+  if (dm.tab === 'bills') {
+    const P = periodRange();
+    bar.innerHTML = search('Search bill number or party') + `<select class="select" id="dmType"><option value="">All bill types</option>${Object.entries(TYPE).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}</select>` + act('+ New sale', 'saleModal()', 'red') + (boss ? act('+ New purchase', 'purchaseModal()') : '') + `<span class="muted" style="align-self:center">${esc(P.label)} (change the period at the top)</span>`;
+    $('#dmType').value = dm.type; $('#dmType').onchange = (e) => { dm.type = e.target.value; load(); };
+    const load = async () => {
+      const types = dm.type ? [dm.type] : Object.keys(TYPE);
+      const rows = (await Promise.all(types.map((t) => GET(`/invoices?type=${t}&${pq()}&limit=200${dm.q ? '&q=' + encodeURIComponent(dm.q) : ''}`)))).flat().sort((a, b) => b.date.localeCompare(a.date));
+      body.innerHTML = tableHtml([{ label: 'Number' }, { label: 'Date' }, { label: 'Type' }, { label: 'Party' }, { label: 'Total', right: 1 }, { label: 'Paid', right: 1 }, { label: 'Status' }, { label: '' }],
+        rows.map((r) => `<tr><td><b>${esc(r.number)}</b></td><td>${dshort(r.date)}</td><td>${TYPE[r.type]}</td><td>${esc(r.partyName || 'Walk-in')}</td><td class="right">${inr2(r.totalPaise)}</td><td class="right">${inr2(r.paidPaise)}</td><td>${payStatus(r)}</td>
+          <td>${act('View', `viewInvoice('${r.id}')`)}${boss && r.status === 'active' ? act('Edit', `editInvoice('${r.id}')`) + act('Cancel', `cancelInvoice('${r.id}')`) : ''}</td></tr>`), 'No bills in this period.');
+    };
+    wireSearch(load); return load();
+  }
+  if (dm.tab === 'payments') {
+    const P = periodRange();
+    bar.innerHTML = `<select class="select" id="dmKind"><option value="">All kinds</option>${Object.entries(KIND).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}</select>` + (boss ? act('+ Expense', "paymentEntryModal(null,'expense')", 'red') + act('+ Payment received', "paymentEntryModal(null,'payment_in')") + act('+ Payment made', "paymentEntryModal(null,'payment_out')") + act('+ Other income', "paymentEntryModal(null,'income')") + act('+ Cash → bank', "paymentEntryModal(null,'deposit')") : act('+ Payment received', "paymentEntryModal(null,'payment_in')", 'red')) + `<span class="muted" style="align-self:center">${esc(P.label)}</span>`;
+    $('#dmKind').value = dm.kind; $('#dmKind').onchange = (e) => { dm.kind = e.target.value; load(); };
+    const load = async () => {
+      const [rows, ps] = await Promise.all([GET(`/payments?limit=500&${pq()}${dm.kind ? '&kind=' + dm.kind : ''}`), GET('/parties')]);
+      const pn = Object.fromEntries(ps.map((p) => [p.id, p.name])); window._dmRows = rows;
+      body.innerHTML = tableHtml([{ label: 'Date' }, { label: 'Kind' }, { label: 'Party / category' }, { label: 'Note' }, { label: 'Mode' }, { label: 'GST', right: 1 }, { label: 'Amount', right: 1 }, { label: '' }],
+        rows.map((r, i) => `<tr><td>${dshort(r.date)}</td><td>${KIND[r.kind]}${r.recurring ? ' <span class="badge blue">recurring</span>' : ''}</td><td>${esc(pn[r.partyId] || r.category || '')}</td><td>${esc(r.note || '')}</td><td>${PAY[r.mode]}</td><td class="right">${r.taxPaise ? inr2(r.taxPaise) : ''}</td><td class="right">${inr2(r.amountPaise)}</td>
+          <td>${boss ? act('Edit', `paymentEntryModal(window._dmRows[${i}])`) + act('Delete', `deletePayment('${r.id}')`) : ''}${r.attachmentId ? act('Bill', `openFile('${r.attachmentId}')`) : ''}</td></tr>`), 'No payments or expenses in this period.');
+    };
+    return load();
+  }
+  if (dm.tab === 'categories') {
+    bar.innerHTML = '<span class="muted">Categories come from your products. Rename one to fix spelling, or rename it to an existing category to merge them.</span>';
+    const cats = await GET('/products/categories');
+    body.innerHTML = tableHtml([{ label: 'Category' }, { label: 'Products', right: 1 }, { label: '' }],
+      cats.map((c) => `<tr><td><b>${esc(c.category)}</b></td><td class="right">${c.count}</td><td>${boss ? act('Rename / merge', `renameCategory(${JSON.stringify(c.category).replace(/"/g, '&quot;')})`) + act('Remove', `renameCategory(${JSON.stringify(c.category).replace(/"/g, '&quot;')}, true)`) : ''}</td></tr>`), 'No categories yet. Set a category on products to create one.');
+    return;
+  }
+  if (dm.tab === 'users') {
+    bar.innerHTML = (owner ? act('+ Add user', 'staffModal()', 'red') : '') + act('Change my password', 'myPasswordModal()');
+    const staff = boss ? await GET('/auth/staff') : [];
+    const ROLE = { owner: 'Owner — full access', manager: 'Manager — everything except shop settings and users', cashier: 'Cashier — sales, customers, money received' };
+    body.innerHTML = boss ? tableHtml([{ label: 'Name' }, { label: 'Email' }, { label: 'Role' }, { label: 'Since' }, { label: '' }],
+      staff.map((u) => `<tr><td><b>${esc(u.name)}</b>${u.id === ME.user.id ? ' <span class="badge grey">you</span>' : ''}</td><td>${esc(u.email)}</td><td>${ROLE[u.role]}</td><td>${u.since ? dshort(u.since.slice(0, 10)) : ''}</td>
+        <td>${owner && u.id !== ME.user.id ? act('Edit', `userModal(${JSON.stringify(u).replace(/"/g, '&quot;')})`) + act('Reset password', `resetPassword('${u.id}', ${JSON.stringify(u.name).replace(/"/g, '&quot;')})`) + act('Remove', `removeUser('${u.id}', ${JSON.stringify(u.name).replace(/"/g, '&quot;')})`) : ''}</td></tr>`)) : '<p class="muted">Only owners and managers can see the user list.</p>';
+    return;
+  }
+  if (dm.tab === 'import') {
+    bar.innerHTML = '';
+    body.innerHTML = `<div class="grid two">
+      <div class="report"><h3>Products from Excel</h3><p>Add or update many products at once. Matches existing ones by barcode or SKU. You'll see a preview first.</p><br>${boss ? act('Import products', 'importModal()', 'red') + act('Template', "downloadServer('/excel/products/template','product-template.xlsx')") : ''}</div>
+      <div class="report"><h3>Customers & suppliers from Excel</h3><p>Columns: Name, Type (customer / wholesale / supplier), Phone, Email, GSTIN, Address, Credit limit, Terms, Opening balance. Matches by GSTIN or phone.</p><br>${boss ? act('Import parties', 'partyImportModal()', 'red') + act('Template', 'partyTemplate()') : ''}</div>
+      <div class="report"><h3>Full backup to Excel</h3><p>Products, bills, bill lines, parties with balances, payments and expenses in one workbook.</p><br>${boss ? act('Download backup', "downloadServer('/excel/export','stockbook-full-backup.xlsx')", 'primary') : ''}</div>
+      <div class="report"><h3>Scanned bills</h3><p>Turn bill photos into purchases and expenses.</p><br>${act('Open Bill Scanner', "go('scanner')")}</div></div>`;
+  }
+}
+async function deleteParty(id) { if (!confirm('Delete this customer/supplier? Their past bills stay on record.')) return; await api('DELETE', '/parties/' + id); toast('Deleted'); refreshAfterChange(); }
+async function deletePayment(id) { if (!confirm('Delete this entry? Balances and cash will be recalculated.')) return; await api('DELETE', '/payments/' + id); toast('Deleted'); refreshAfterChange(); }
+async function renameCategory(from, remove) {
+  const to = remove ? '' : prompt(`Rename "${from}" to:\n(Use an existing category's name to merge them.)`, from);
+  if (to === null || to === from) return;
+  if (remove && !confirm(`Remove the category "${from}"? Its products become uncategorised.`)) return;
+  const r = await api('POST', '/products/categories/rename', { from, to: (to || '').trim() });
+  toast(`${r.updated} product${r.updated === 1 ? '' : 's'} updated`); renderDataManager($('#settings'));
+}
+/** Add or edit any money entry: expense, payment received/made, other income, cash ↔ bank. */
+async function paymentEntryModal(row, kind) {
+  kind = row?.kind || kind;
+  const needsParty = kind === 'payment_in' || kind === 'payment_out', isExp = kind === 'expense' || kind === 'income', transfer = kind === 'deposit' || kind === 'withdraw';
+  const ps = needsParty ? (await GET('/parties')).filter((p) => (kind === 'payment_in' ? p.type !== 'supplier' : p.type === 'supplier')) : [];
+  openModal(`<h2>${row ? 'Edit' : 'Add'} — ${KIND[kind]}</h2><div class="form-grid" id="pef">
+    ${needsParty ? `<div class="field" style="grid-column:1/-1"><label>${kind === 'payment_in' ? 'Received from' : 'Paid to'}</label><select class="select" name="partyId">${ps.map((p) => `<option value="${p.id}" ${p.id === row?.partyId ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</select></div>` : ''}
+    <div class="field"><label>Date</label><input class="input" type="date" name="date" value="${row?.date || today()}"></div>
+    <div class="field"><label>Amount (₹)</label><input class="input" name="amount" value="${row ? rupees(row.amountPaise) : ''}" inputmode="decimal"></div>
+    ${transfer ? '' : `<div class="field"><label>Mode</label><select class="select" name="mode">${['cash', 'upi', 'bank', 'card'].map((m) => `<option value="${m}" ${m === row?.mode ? 'selected' : ''}>${PAY[m]}</option>`).join('')}</select></div>`}
+    ${isExp ? `<div class="field"><label>Category</label><input class="input" name="category" value="${esc(row?.category || '')}" list="exCatsDm"><datalist id="exCatsDm">${['Rent', 'Salary', 'Electricity', 'Internet', 'Marketing', 'Transport', 'Packaging', 'Repairs', 'Bank charges', 'GST payment', 'Interest', 'Commission', 'Other'].map((c) => `<option value="${c}">`).join('')}</datalist></div>` : ''}
+    ${kind === 'expense' ? `<div class="field"><label>GST included (₹)</label><input class="input" name="tax" value="${row?.taxPaise ? rupees(row.taxPaise) : ''}"></div><div class="field"><label><input type="checkbox" name="recurring" ${row?.recurring ? 'checked' : ''}> Recurring monthly</label></div>` : ''}
+    <div class="field" style="grid-column:1/-1"><label>Note</label><input class="input" name="note" value="${esc(row?.note || '')}"></div></div>
+  <div class="modal-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn red" onclick="savePaymentEntry('${row?.id || ''}','${kind}')">${row ? 'Save changes' : 'Add'}</button></div>`);
+}
+async function savePaymentEntry(id, kind) {
+  const f = form($('#pef')); const amt = Math.round((parseFloat(f.amount) || 0) * 100);
+  if (amt <= 0) return toast('Enter an amount', true);
+  const body = { kind, amountPaise: amt, date: f.date, mode: f.mode || 'cash', note: f.note || undefined };
+  if (f.partyId) body.partyId = f.partyId;
+  if (f.category !== undefined) body.category = f.category || 'Other';
+  if (f.tax !== undefined) body.taxPaise = Math.round((parseFloat(f.tax) || 0) * 100);
+  if (f.recurring !== undefined) body.recurring = f.recurring;
+  await api(id ? 'PATCH' : 'POST', id ? '/payments/' + id : '/payments', body);
+  toast(id ? 'Updated' : 'Added'); closeModal(); refreshAfterChange();
+}
+function userModal(u) {
+  openModal(`<h2>Edit ${esc(u.name)}</h2><div class="form-grid" id="uf"><div class="field"><label>Name</label><input class="input" name="name" value="${esc(u.name)}"></div>
+  <div class="field"><label>Role</label><select class="select" name="role"><option value="cashier">Cashier</option><option value="manager">Manager</option><option value="owner">Owner</option></select></div></div>
+  <div class="modal-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn red" onclick="api('PATCH','/auth/staff/${u.id}',form($('#uf'))).then(()=>{toast('Saved');closeModal();renderDataManager($('#settings'))})">Save</button></div>`);
+  $('#uf [name=role]').value = u.role;
+}
+async function resetPassword(id, name) { const p = prompt(`New password for ${name} (8+ characters):`); if (!p) return; await api('POST', `/auth/staff/${id}/password`, { password: p }); toast('Password changed. Tell them the new password.'); }
+async function removeUser(id, name) { if (!confirm(`Remove ${name} from this shop? They will no longer be able to sign in here.`)) return; await api('DELETE', '/auth/staff/' + id); toast('Removed'); renderDataManager($('#settings')); }
+function myPasswordModal() {
+  openModal(`<h2>Change my password</h2><div class="form-grid" id="mpf"><div class="field"><label>Current password</label><input class="input" type="password" name="current"></div><div class="field"><label>New password</label><input class="input" type="password" name="password" placeholder="8+ characters"></div></div>
+  <div class="modal-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn red" onclick="api('POST','/auth/me/password',form($('#mpf'))).then(()=>{toast('Password changed');closeModal()})">Change</button></div>`);
+}
+function partyImportModal() {
+  openModal(`<h2>Import customers & suppliers</h2><p class="muted">An .xlsx or .csv file with a header row. You'll see a preview before anything is saved.</p>
+  <input type="file" id="pxFile" accept=".xlsx,.csv"><div id="pxOut" style="margin-top:12px"></div>
+  <div class="modal-actions"><button class="btn" onclick="closeModal()">Close</button><button class="btn" onclick="runPartyImport(false)">Preview</button><button class="btn red" onclick="runPartyImport(true)">Import</button></div>`);
+}
+async function runPartyImport(commit) {
+  const f = $('#pxFile').files[0]; if (!f) return toast('Choose a file first', true);
+  const fd = new FormData(); fd.append('file', f);
+  const r = await api('POST', '/excel/parties/import?commit=' + commit, fd, { form: true }), pv = r.preview;
+  $('#pxOut').innerHTML = `<div class="notice">${commit ? `Imported: ${r.created} new, ${r.updated} updated.` : `${pv.toCreate} new and ${pv.toUpdate} existing found in ${pv.totalRows} rows.`}${pv.invalidGstins.length ? `<br>GSTINs that look wrong (saved without GSTIN): ${pv.invalidGstins.map(esc).join(', ')}` : ''}</div><p class="muted" style="font-size:12px">${Object.entries(pv.mapping).map(([h, m]) => `${esc(h)} → <b>${m || 'ignored'}</b>`).join(' · ')}</p>`;
+  if (commit) refreshAfterChange();
+}
+function partyTemplate() { downloadXlsx({ Parties: [{ Name: 'Riya Boutique', Type: 'Wholesale', Phone: '98765 12345', Email: '', GSTIN: '23RIYAB1234F1Z5', Address: 'Indore', 'Credit limit': 50000, Terms: 15, 'Opening balance': 0 }, { Name: 'Shree Distributors', Type: 'Supplier', Phone: '98260 11111', Email: '', GSTIN: '', Address: '', 'Credit limit': '', Terms: 14, 'Opening balance': -12000 }] }, 'parties-template.xlsx'); }
+function staffModal() {
+  openModal(`<h2>Add user</h2><div class="form-grid" id="stf"><div class="field"><label>Name</label><input class="input" name="name"></div><div class="field"><label>Email</label><input class="input" name="email" type="email"></div><div class="field"><label>Password</label><input class="input" name="password" type="password" placeholder="8+ characters"></div>
+  <div class="field"><label>Role</label><select class="select" name="role"><option value="cashier">Sales staff (cashier)</option><option value="manager">Manager / accountant</option></select></div></div>
+  <div class="modal-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn red" onclick="api('POST','/auth/staff',form($('#stf'))).then(()=>{toast('User added');closeModal();go('settings', window._setTab)})">Add user</button></div>`);
+}
+</script>
+<script>
+/* ================= bill scanner: OCR text parser (free, runs in the browser) ================= */
+/* Stockbook bill text parser v2: OCR text → BillData. Runs in the browser (no server, no key). */
+/**
+ * text:       OCR of the whole bill (used for the item table and totals)
+ * headerText: optional OCR of just the top of the bill, which reads large shop names more reliably
+ */
+function parseBillText(text, shopGstin, headerText) {
+  const split = (t) => String(t || '').split(/\r?\n/).map((l) => l.replace(/[|¦]/g, ' ').replace(/[“”]/g, '"').replace(/\s+/g, ' ').trim()).filter(Boolean);
+  const lines = split(text), head = split(headerText);
+  const all = lines.join('\n'), headAll = head.join('\n') + '\n' + all;
+  const near = (a, b) => Math.abs(a - b) <= Math.max(0.6, Math.abs(b) * 0.012);
+  const MONTHS = { jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6, jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12 };
+  const iso = (y, m, d) => { y = String(y).length === 2 ? '20' + y : String(y); if (m < 1 || m > 12 || d < 1 || d > 31) return undefined; return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`; };
+  const DATE_RE = /(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})|(\d{1,2})[\s\-\/.]*(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*[\s\-\/.,']*(\d{2,4})|(\d{4})-(\d{2})-(\d{2})/i;
+  const toIso = (s) => {
+    const m = String(s || '').match(DATE_RE); if (!m) return undefined;
+    if (m[1]) return iso(m[3], +m[2], +m[1]);
+    if (m[4]) return iso(m[6], MONTHS[m[5].toLowerCase().slice(0, 3)], +m[4]);
+    return iso(m[7], +m[8], +m[9]);
+  };
+
+  /* ---------- numbers as OCR writes them ---------- */
+  const fixDigits = (t) => t.replace(/[©°Oo]/g, '0').replace(/[lI|]/g, '1').replace(/S(?=\d)|(?<=\d)S/g, '5').replace(/B(?=\d)|(?<=\d)B/g, '8');
+  /** "2,280.00" "5:" "©" "₹1,450" "12%" → number, or null when the token is not numeric */
+  const num = (tok) => {
+    let t = String(tok).replace(/^(rs\.?|₹|inr)/i, '').replace(/[:;,.'"]+$/, '').replace(/^[(:;]+|[)]+$/g, '');
+    if (!t) return null;
+    if (/[A-Za-z©°|]/.test(t)) { const f = fixDigits(t); if (/[A-Za-z]/.test(f) || !/\d/.test(f)) return null; t = f; }
+    if (!/^-?[\d,]*\.?\d+%?$/.test(t)) return null;
+    t = t.replace('%', '');
+    if (/^\d{1,3}(,\d{2,3})+(\.\d+)?$/.test(t)) t = t.replace(/,/g, '');      // Indian / western thousands
+    else if (/^\d+,\d{2}$/.test(t)) t = t.replace(',', '.');                   // 95,00 → 95.00
+    else t = t.replace(/,/g, '');
+    const n = parseFloat(t);
+    return Number.isFinite(n) ? n : null;
+  };
+  const lastNum = (l) => { const ns = l.split(' ').map(num).filter((x) => x !== null); return ns.length ? ns[ns.length - 1] : null; };
+
+  /* ---------- GSTIN, even when OCR splits it or confuses letters and digits ---------- */
+  const toDigit = { O: '0', D: '0', Q: '0', I: '1', L: '1', S: '5', B: '8', Z: '2', G: '6', T: '7' };
+  const toAlpha = { 0: 'O', 1: 'I', 5: 'S', 8: 'B', 2: 'Z', 6: 'G', 7: 'T', 4: 'A' };
+  const fixGstin = (raw) => {
+    const s = raw.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (s.length < 15) return null;
+    const c = s.slice(0, 15).split('');
+    for (const i of [0, 1, 7, 8, 9, 10]) c[i] = toDigit[c[i]] || c[i];
+    for (const i of [2, 3, 4, 5, 6, 11]) c[i] = toAlpha[c[i]] || c[i];
+    if (c[13] !== 'Z' && /[7Z2]/.test(c[13])) c[13] = 'Z';
+    const g = c.join('');
+    return /^\d{2}[A-Z]{5}\d{4}[A-Z][A-Z\d]Z[A-Z\d]$/.test(g) ? g : null;
+  };
+  const gstins = [];
+  for (const m of headAll.matchAll(/gst\s*(?:in|no|number|#)?\.?\s*[:\-]?\s*([A-Z0-9][A-Z0-9 ]{14,19})/gi)) { const g = fixGstin(m[1]); if (g) gstins.push(g); }
+  for (const m of headAll.matchAll(/\b[0-9OIS]{2}[A-Z0-9]{13}\b/gi)) { const g = fixGstin(m[0]); if (g) gstins.push(g); }
+  const shopG = (shopGstin || '').toUpperCase();
+  const vendorGstin = gstins.find((g) => g !== shopG);
+
+  /* ---------- header fields ---------- */
+  const first = (re) => { for (const l of [...head, ...lines]) { const m = l.match(re); if (m) return m; } return null; };
+  const billNo = first(/(?:invoice|inv|bill|voucher|vch|receipt|memo|challan)\s*(?:no|number|#)?\s*\.?\s*[:#\-]\s*([A-Z0-9][A-Z0-9\/\-]{1,30})/i)?.[1]
+    || first(/(?:invoice|inv|bill)\s*(?:no|number|#)\.?\s*([A-Z0-9][A-Z0-9\/\-]{1,30})/i)?.[1];
+  const dateLine = first(/(?:invoice|bill|inv\.?|doc)?\s*dated?\b/i);
+  const dueLine = first(/due\s*(?:date|on|by)?/i);
+  const both = [...head, ...lines];
+  const date = (dateLine && toIso(both.find((l) => l.includes(dateLine[0])).split(/dated?/i).slice(1).join(' '))) || toIso(both.find((l) => DATE_RE.test(l) && !/due/i.test(l)));
+  const dueDate = dueLine ? toIso(both.find((l) => /due\s*(?:date|on|by)?/i.test(l)).split(/due/i)[1]) : undefined;
+  const phone = first(/(?:phone|ph|mob(?:ile)?|tel|contact|cell)\.?\s*(?:no)?\.?\s*[:\-]?\s*(\+?\d[\d\s\-]{8,14}\d)/i)?.[1]?.trim();
+
+  let vendorName;
+  for (const l of [...head.slice(0, 6), ...lines.slice(0, 8)]) {
+    const t = l.replace(/\b(tax\s+invoice|invoice|bill\s+of\s+supply|cash\s+memo|estimate|original|duplicate|triplicate|retail\s+invoice)\b.*$/i, '').replace(/^[^A-Za-z]+/, '').trim();
+    if (/[A-Za-z]{3,}/.test(t) && !/gstin|phone|mob|invoice|bill\s*(no|to)|date|road|street|nagar|plot|^m\/s/i.test(t) && t.length <= 60) { vendorName = t; break; }
+  }
+
+  /* ---------- totals ---------- */
+  const TOTALS = /(sub\s*-?\s*total|taxable\s*(value|amount|amt)|\bcgst\b|\bsgst\b|\bigst\b|utgst|\bcess\b|round\s*(off|ing)|grand\s*total|net\s*(amount|amt|payable|total)|total\s*(amount|amt|value|rs|qty)?\b|amount\s*(payable|due)|bill\s*amount|invoice\s*(total|value)|amount in words|rupees|e\s*&\s*o\s*e)/i;
+  const findTotal = (re) => { let v = null; for (const l of lines) if (re.test(l) && !isHeader(l)) { const n = lastNum(l.replace(/@\s*[\d.]+\s*%/g, '').replace(/\d+(\.\d+)?\s*%/g, '')); if (n !== null) v = n; } return v; };
+
+  /* ---------- the item table ---------- */
+  const COLS = [
+    ['desc', /^(description|particulars|item|items|product|goods|name|details)$/i],
+    ['serial', /^(s\.?\s*no\.?|sr\.?|sl\.?|sno|#|no\.?)$/i],
+    ['hsn', /^(hsn|sac|hsn\/sac|hsn\/sac\.?)$/i],
+    ['qty', /^(qty|qty\.|quantity|qnty|nos|pcs)$/i],
+    ['unit', /^(unit|uom|units)$/i],
+    ['mrp', /^mrp$/i],
+    ['rate', /^(rate|price|rate\/unit|unit\s*price|s\.?rate|p\.?rate)$/i],
+    ['disc', /^(disc|disc%|disc\.|discount|dis%|dis)$/i],
+    ['gst', /^(gst|gst%|tax%|tax|igst%|gst\s*%|rate%)$/i],
+    ['taxable', /^(taxable|taxable\s*value|value|net\s*value)$/i],
+    ['cgst', /^cgst$/i], ['sgst', /^(sgst|utgst)$/i], ['igst', /^igst$/i],
+    ['amount', /^(amount|amt|amt\.|total|net\s*amt|net\s*amount|line\s*total|value\s*\(?rs\)?)$/i],
+    ['batch', /^(batch|batch\s*no)$/i], ['expiry', /^(exp|expiry|exp\.?\s*date)$/i],
+  ];
+  const classify = (w) => (COLS.find(([, re]) => re.test(w)) || [null])[0];
+  function headerCols(l) {
+    const words = l.replace(/\(.*?\)/g, ' ').split(' ').filter(Boolean);
+    const out = [];
+    for (let i = 0; i < words.length; i++) {
+      const two = words[i] + ' ' + (words[i + 1] || '');
+      let k = classify(two);
+      if (k) { i++; } else k = classify(words[i]);
+      if (k && !(k === 'desc' && out.includes('desc'))) out.push(k);
+    }
+    return out;
+  }
+  function isHeader(l) { const h = headerCols(l); const strong = h.filter((k) => ['desc', 'qty', 'rate', 'amount', 'hsn', 'mrp', 'taxable'].includes(k)); return strong.length >= 2 && !/\d{3,}/.test(l.replace(/\(.*?\)/g, '')); }
+
+  const headerIdx = lines.findIndex(isHeader);
+  const cols = headerIdx >= 0 ? headerCols(lines[headerIdx]) : [];
+  const NUMERIC = ['hsn', 'qty', 'mrp', 'rate', 'disc', 'gst', 'taxable', 'cgst', 'sgst', 'igst', 'amount'];
+  const numCols = cols.filter((k) => NUMERIC.includes(k));
+  let zoneEnd = lines.length;
+  if (headerIdx >= 0) for (let i = headerIdx + 1; i < lines.length; i++) if (TOTALS.test(lines[i]) && !/^\d{1,3}[.)]?\s+[A-Za-z]/.test(lines[i])) { zoneEnd = i; break; }
+  const zone = headerIdx >= 0 ? lines.slice(headerIdx + 1, zoneEnd) : lines.filter((l) => !TOTALS.test(l));
+
+  const UNIT = /^(pcs?|pes|pc5|nos?|n0s|kg|kgs|g|gm|gms|ml|l|ltr|lt|box|bx|pkt|pkts|pack|bag|bags|dz|doz|dozen|pair|prs|set|sets|mtr|m|units?|btl|bottle|jar|tin|can|roll|rolls|ctn|case)$/i;
+  const items = [], unparsed = [];
+  const inclusive = /incl(\.|usive|uding)?\s*(of\s*)?(all\s*)?(gst|tax)/i.test(all);
+
+  function decode(tokens) {
+    // peel numeric columns (and a unit written next to the quantity, "20 Pcs") off the end; the rest is the name
+    let i = tokens.length - 1; const seq = [];
+    while (i >= 0) {
+      const t = tokens[i], n = num(t);
+      if (n !== null) { seq.unshift({ t, n, pct: /%/.test(t) }); i--; continue; }
+      const u = t.replace(/[.:]$/, '');
+      if (UNIT.test(u) && seq.length && i > 0 && num(tokens[i - 1]) !== null) { seq.unshift({ t, unit: u.toLowerCase().replace(/^pes$|^pc5$/, 'pcs') }); i--; continue; }
+      break;
+    }
+    let start = 0;
+    if (/^\d{1,3}[.)]?$/.test(tokens[0]) && i >= 1) start = 1; // serial number
+    const nameToks = tokens.slice(start, i + 1);
+    // more numbers than the table has numeric columns: the extra ones on the left belong to the name ("Shampoo 340 ml"),
+    // along with a unit written right after them
+    const count = () => seq.filter((x) => !x.unit).length;
+    if (numCols.length) while (count() > numCols.length) {
+      nameToks.push(seq.shift().t);
+      while (seq.length && seq[0].unit) nameToks.push(seq.shift().t);
+    }
+    const tail = seq.filter((x) => !x.unit), unit = seq.find((x) => x.unit)?.unit;
+    return { name: nameToks.join(' ').replace(/^[\-–:.,]+|[\-–:.,]+$/g, '').trim(), tail, unit };
+  }
+
+  function solve(d) {
+    const r = { name: d.name, unit: d.unit, qty: null, rate: null, disc: 0, gst: null, amount: null, taxable: null, hsn: undefined, mrp: null };
+    let cols2 = numCols;
+    if (numCols.length >= 3 && d.tail.length === numCols.length - 1) {
+      // the OCR lost one number in this row: try each column as the missing one, keep the one whose arithmetic fits
+      for (let miss = 0; miss < numCols.length; miss++) {
+        const c = numCols.filter((_, j) => j !== miss), get = (k) => { const j = c.indexOf(k); return j >= 0 ? d.tail[j].n : null; };
+        const q = get('qty'), p = get('rate'), a = get('amount') ?? get('taxable'), dd = get('disc') || 0, g = get('gst') || 0;
+        const qq = q ?? (p && a ? Math.round(a / (p * (1 - dd / 100))) : null);
+        if (qq && p && a && (near(qq * p * (1 - dd / 100), a) || near(qq * p * (1 - dd / 100) * (1 + g / 100), a))) { cols2 = c; break; }
+      }
+    }
+    if (cols2.length && d.tail.length === cols2.length) {
+      cols2.forEach((k, j) => {
+        const v = d.tail[j];
+        if (k === 'hsn') r.hsn = v.t.replace(/\D/g, '');
+        else if (k === 'qty') r.qty = v.n; else if (k === 'rate') r.rate = v.n; else if (k === 'mrp') r.mrp = v.n;
+        else if (k === 'disc') r.disc = v.n; else if (k === 'gst') r.gst = v.n; else if (k === 'taxable') r.taxable = v.n;
+        else if (k === 'amount') r.amount = v.n;
+      });
+    } else {
+      // no reliable header: find qty × rate ≈ amount among the numbers
+      const ns = d.tail.filter((x) => !x.pct).map((x) => x.n), pct = d.tail.find((x) => x.pct);
+      if (pct) r.gst = pct.n;
+      if (ns.length < 2) return null;
+      r.amount = ns[ns.length - 1];
+      outer: for (let j = ns.length - 2; j >= 1; j--) for (let i = j - 1; i >= 0; i--) {
+        const q = ns[i], p = ns[j];
+        for (const rr of [p, p / 100]) if (q > 0 && rr > 0 && q < 100000 && (near(q * rr, r.amount) || (r.gst && near(q * rr * (1 + r.gst / 100), r.amount)))) {
+          r.qty = q; r.rate = rr; const h = d.tail.slice(0, i).find((x) => /^\d{4,8}$/.test(x.t)); if (h) r.hsn = h.t; break outer;
+        }
+      }
+      if (r.qty == null && ns.length === 2 && headerIdx >= 0 && numCols.includes('qty') && !numCols.includes('rate')) { r.qty = ns[0]; }
+      if (r.qty == null && ns.length === 2 && headerIdx < 0) return null;
+      if (r.qty == null && ns.length === 2) { r.qty = ns[0]; }
+    }
+    const base = r.taxable ?? null;
+    const target = base ?? r.amount;
+    const fits = (q, p) => q && p && target != null && (near(q * p * (1 - (r.disc || 0) / 100), target) || near(q * p * (1 - (r.disc || 0) / 100) * (1 + (r.gst || 0) / 100), target));
+    // decimal points the OCR dropped: 2250 → 22.50, 9400 → 94.00
+    if (r.qty && r.rate && target != null && !fits(r.qty, r.rate) && fits(r.qty, r.rate / 100)) r.rate = r.rate / 100;
+    if (r.qty && r.rate && target != null && !fits(r.qty, r.rate) && near(r.qty * r.rate * (1 - (r.disc || 0) / 100), target * 100)) r.amount = (r.amount ?? target) / 100;
+    // missing pieces worked out from the others
+    if (!r.qty && r.rate && target) { const q = target / (r.rate * (1 - (r.disc || 0) / 100)); if (Math.abs(q - Math.round(q)) < 0.02) r.qty = Math.round(q); }
+    if (r.qty && !r.rate && target) r.rate = Math.round((target / r.qty / (1 - (r.disc || 0) / 100)) * 100) / 100;
+    if (r.amount == null && base != null) r.amount = base;
+    if (!r.qty || r.rate == null) return null;
+    return r;
+  }
+
+  let lastWasItem = false;
+  for (const l of zone) {
+    const tokens = l.split(' ');
+    const d = decode(tokens);
+    if (!d.tail.length) {
+      // a wrapped second line of the item directly above ("(1 kg pouch)")
+      if (lastWasItem && l.length <= 45 && !TOTALS.test(l) && headerIdx >= 0) items[items.length - 1].name += ' ' + l;
+      else if (headerIdx >= 0 && unparsed.length) unparsed[unparsed.length - 1] += ' ' + l;
+      lastWasItem = false;
+      continue;
+    }
+    lastWasItem = false;
+    if (!d.name || !/[A-Za-z]{2,}/.test(d.name)) { if (headerIdx >= 0) unparsed.push(l); continue; }
+    const r = solve(d);
+    if (!r) { if (headerIdx >= 0 || d.tail.length >= 3) unparsed.push(l); continue; }
+    lastWasItem = true;
+    let rate = r.rate;
+    if (inclusive && r.gst == null) { const g = all.match(/(?:gst|tax)\s*@?\s*(\d+(?:\.\d+)?)\s*%/i); if (g) r.gst = parseFloat(g[1]); }
+    // receipts that print prices including GST: convert to the pre-GST rate the books need
+    if (inclusive && r.gst && !numCols.includes('taxable') && r.amount != null && near(r.qty * rate * (1 - r.disc / 100), r.amount)) rate = Math.round((rate / (1 + r.gst / 100)) * 100) / 100;
+    items.push({ name: r.name, hsn: r.hsn || undefined, qty: r.qty, unit: r.unit, rate, gstRate: r.gst, discount: r.disc || 0, amount: r.amount });
+  }
+
+  const subtotal = findTotal(/(sub\s*-?\s*total|taxable\s*(value|amount|amt))/i);
+  const cgst = findTotal(/\bcgst\b/i), sgst = findTotal(/\b(sgst|utgst)\b/i), igst = findTotal(/\bigst\b/i);
+  const roundOff = findTotal(/round\s*(off|ing)/i);
+  const total = findTotal(/(grand\s*total|net\s*(amount|amt|payable)|total\s*amount|amount\s*payable|bill\s*amount|invoice\s*(total|value))/i) ?? findTotal(/^total\b/i);
+  const rateFromTax = all.match(/(?:igst|cgst|sgst)\s*@?\s*(\d+(?:\.\d+)?)\s*%/i);
+  if (rateFromTax) { let rr = parseFloat(rateFromTax[1]); if (/cgst|sgst/i.test(rateFromTax[0])) rr *= 2; items.forEach((it) => { if (it.gstRate == null) it.gstRate = rr; }); }
+
+  const looksExpense = !items.length && /(electricity|power|broadband|internet|telephone|mobile bill|rent|maintenance|transport|courier|freight|repair|water bill|gas bill)/i.test(all);
+  const taxTotal = igst != null || cgst != null || sgst != null ? Math.round(((igst || 0) + (cgst || 0) + (sgst || 0)) * 100) / 100 : null;
+  return {
+    kind: looksExpense ? 'expense' : 'purchase',
+    vendor: { name: vendorName, gstin: vendorGstin, phone },
+    billNo, date, dueDate,
+    items: looksExpense && total ? [{ name: vendorName ? `${vendorName} bill` : 'Expense', qty: 1, rate: subtotal ?? total, gstRate: null, amount: total }] : items,
+    subtotal, taxTotal, cgst, sgst, igst, roundOff, total,
+    category: looksExpense ? (all.match(/electricity|broadband|internet|telephone|rent|transport|courier|repair/i) || ['Other'])[0].replace(/^./, (c) => c.toUpperCase()) : undefined,
+    confidence: items.length && total ? (unparsed.length ? 'low' : 'medium') : 'low',
+    unparsedLines: unparsed,
+    warnings: [],
+  };
+}
+
+/* ================= bill scanner ================= */
+let SCAN = null, CATALOG = null;
+const loadScript = (src) => new Promise((res, rej) => { if ($(`script[src="${src}"]`)) return res(); const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = () => rej(new Error('Could not load ' + src + ' — check the internet connection')); document.head.appendChild(s); });
+let scanEngine = null;
+RENDER.scanner = async (el, scanId) => {
+  if (scanId) return openScan(scanId);
+  if (!scanEngine) scanEngine = ME.aiEnabled ? 'ai' : 'ocr';
+  const list = await GET('/scans');
+  el.innerHTML = `<div class="page-head"><div><h1>Bill Scanner</h1><p>Photograph or upload a supplier or expense bill. Stockbook reads it, turns it into structured data you can check, and records it as a purchase or expense.</p></div></div>
+  <div class="card"><div class="drop" id="drop">
+    <h3>Drop a bill photo or PDF here</h3><p class="muted" style="margin:0">JPG, PNG or WEBP photo, or a PDF (PDFs need AI reading). Flat, well lit and straight works best.</p>
+    <div class="engine" role="radiogroup" aria-label="Reading method">
+      <label class="${scanEngine === 'ai' ? 'on' : ''} ${ME.aiEnabled ? '' : 'off'}"><input type="radio" name="eng" value="ai" ${scanEngine === 'ai' ? 'checked' : ''} ${ME.aiEnabled ? '' : 'disabled'} hidden><b>AI reading</b><small>${ME.aiEnabled ? 'Best accuracy. Handles handwriting, messy layouts and photos. Runs on your server.' : 'Off. Set ANTHROPIC_API_KEY in the server .env to enable.'}</small></label>
+      <label class="${scanEngine === 'ocr' ? 'on' : ''}"><input type="radio" name="eng" value="ocr" ${scanEngine === 'ocr' ? 'checked' : ''} hidden><b>On-device OCR</b><small>Free and private: the photo is read in this browser. Works best on printed bills.</small></label>
+    </div>
+    <div class="actions" style="justify-content:center;margin-top:12px"><button class="btn red" onclick="pickBill()">Choose file</button><button class="btn" onclick="pickBill(true)">Use camera</button><button class="btn" onclick="trySample()">Try a sample bill</button><button class="btn" onclick="trySample('photo')">Try a phone photo</button></div>
+    <div id="scanStatus" style="max-width:420px;margin:12px auto 0" hidden><div id="scanMsg" class="muted"></div><div class="progress"><div id="scanBar"></div></div></div>
+  </div></div>
+  <div class="card" style="margin-top:14px"><div class="card-title"><h2>Scanned bills</h2><span class="muted">${list.length} total · ${list.filter((s) => s.status !== 'converted').length} waiting for review</span></div>
+  ${tableHtml([{ label: 'Scanned' }, { label: 'File' }, { label: 'Vendor' }, { label: 'Bill no.' }, { label: 'Items', right: 1 }, { label: 'Total', right: 1 }, { label: 'Read by' }, { label: 'Status' }, { label: '' }],
+    list.map((s) => `<tr class="clickable" onclick="openScan('${s.id}')"><td>${new Date(s.createdAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</td><td>${esc(s.file.filename)}</td><td>${esc(s.summary?.vendor || '—')}</td><td>${esc(s.summary?.billNo || '—')}</td><td class="right">${s.summary?.itemCount ?? '—'}</td><td class="right">${s.summary?.total != null ? inr2(Math.round(s.summary.total * 100)) : '—'}</td><td>${s.engine ? { ai: 'AI', ocr: 'OCR', manual: 'Manual' }[s.engine] : '—'}</td><td>${s.status === 'converted' ? `<span class="badge green">${s.invoiceId ? 'Purchase created' : 'Expense recorded'}</span>` : s.status === 'extracted' ? `<span class="badge amber">Review${s.summary?.warningCount ? ' · ' + s.summary.warningCount + ' checks' : ''}</span>` : '<span class="badge grey">Not read</span>'}</td><td><button class="btn">Open</button></td></tr>`), 'No bills scanned yet. Try the sample bill to see how it works.')}</div>`;
+  $$('.engine label').forEach((l) => l.addEventListener('click', () => { const r = $('input', l); if (r.disabled) return; scanEngine = r.value; $$('.engine label').forEach((x) => x.classList.toggle('on', x === l)); }));
+  const drop = $('#drop');
+  ['dragenter', 'dragover'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add('over'); }));
+  ['dragleave', 'drop'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove('over'); }));
+  drop.addEventListener('drop', (e) => { const f = e.dataTransfer.files[0]; if (f) scanFile(f); });
+};
+async function pickBill(camera) { const f = await pickFile('image/*,application/pdf', camera); if (f) scanFile(f); }
+async function trySample(kind) { const n = kind === 'photo' ? 'sample-bill-photo.jpg' : 'sample-bill.png'; const b = await (await fetch(API + '/' + n)).blob(); scanFile(new File([b], n, { type: b.type })); }
+function scanStatus(msg, pct) { $('#scanStatus').hidden = false; $('#scanMsg').textContent = msg; $('#scanBar').style.width = (pct ?? 0) + '%'; }
+/** Straighten up the photo for OCR: respect phone rotation, grey, stretch contrast, ~2000 px wide; optional black-and-white. */
+async function prepImage(file, bw) {
+  const bmp = await createImageBitmap(file, { imageOrientation: 'from-image' }).catch(() => createImageBitmap(file));
+  const scale = bmp.width > 2600 ? 2400 / bmp.width : Math.min(3, Math.max(1, 2000 / bmp.width));
+  const c = document.createElement('canvas'); c.width = Math.round(bmp.width * scale); c.height = Math.round(bmp.height * scale);
+  const ctx = c.getContext('2d', { willReadFrequently: true });
+  ctx.imageSmoothingQuality = 'high'; ctx.drawImage(bmp, 0, 0, c.width, c.height);
+  const img = ctx.getImageData(0, 0, c.width, c.height), d = img.data, hist = new Array(256).fill(0);
+  for (let i = 0; i < d.length; i += 4) { const g = Math.round(0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]); d[i] = g; hist[g]++; }
+  const n = d.length / 4; let lo = 0, hi = 255, acc = 0;
+  for (; lo < 255 && (acc += hist[lo]) < n * 0.02; lo++);
+  acc = 0; for (; hi > 0 && (acc += hist[hi]) < n * 0.02; hi--);
+  let thr = 128;
+  if (bw) { // Otsu threshold for faint or uneven photos
+    let sum = 0, sumB = 0, wB = 0, best = 0; hist.forEach((h, i) => (sum += i * h));
+    for (let t = 0; t < 256; t++) { wB += hist[t]; if (!wB) continue; const wF = n - wB; if (!wF) break; sumB += t * hist[t]; const mB = sumB / wB, mF = (sum - sumB) / wF, v = wB * wF * (mB - mF) ** 2; if (v > best) { best = v; thr = t; } }
+  }
+  for (let i = 0; i < d.length; i += 4) {
+    let g = hi > lo ? Math.max(0, Math.min(255, ((d[i] - lo) * 255) / (hi - lo))) : d[i];
+    if (bw) g = d[i] > thr ? 255 : 0;
+    d[i] = d[i + 1] = d[i + 2] = g;
+  }
+  ctx.putImageData(img, 0, 0);
+  return c;
+}
+/** Two passes: the whole bill (items, totals), then the top fifth again (large shop names, GSTIN, bill number). */
+async function ocrBill(file, alt, onProgress) {
+  onProgress('Loading the OCR engine (the first time downloads about 10 MB)…', 12);
+  await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js');
+  onProgress('Cleaning up the photo…', 16);
+  const canvas = await prepImage(file, alt);
+  let pass = 'Reading the bill';
+  const worker = await Tesseract.createWorker('eng', 1, { logger: (m) => { if (m.status === 'recognizing text') onProgress(`${pass}… ${Math.round(m.progress * 100)}%`, pass === 'Reading the bill' ? 20 + m.progress * 60 : 80 + m.progress * 12); } });
+  await worker.setParameters({ preserve_interword_spaces: '1', ...(alt ? { tessedit_pageseg_mode: '6' } : {}) });
+  const full = await worker.recognize(canvas);
+  pass = 'Reading the header';
+  const top = await worker.recognize(canvas, { rectangle: { left: 0, top: 0, width: canvas.width, height: Math.round(canvas.height * 0.22) } });
+  await worker.terminate();
+  return { text: full.data.text, headerText: top.data.text };
+}
+async function scanFile(file) {
+  const engine = scanEngine;
+  if (engine === 'ocr' && file.type === 'application/pdf') return toast('On-device OCR needs a photo. Take a photo or screenshot of the PDF, or turn on AI reading.', true);
+  try {
+    scanStatus(engine === 'ai' ? 'Uploading and reading with AI… (about 10–30 seconds)' : 'Uploading…', 10);
+    const fd = new FormData(); fd.append('file', file);
+    let scan = await api('POST', '/scans?engine=' + (engine === 'ai' ? 'ai' : 'none'), fd, { form: true });
+    if (engine === 'ocr') {
+      const o = await ocrBill(file, false, scanStatus);
+      scanStatus('Turning text into bill data…', 95);
+      const parsed = parseBillText(o.text, ME.shop.gstin, o.headerText);
+      scan = await api('PUT', `/scans/${scan.id}/data`, { data: parsed, engine: 'ocr', rawText: o.text });
+    }
+    scanStatus('Done', 100);
+    openScan(scan.id, file);
+  } catch (e) { scanStatus('Could not read the bill: ' + e.message, 0); }
+}
+async function openScan(id, localFile) {
+  const el = $('#scanner');
+  if (current !== 'scanner') { current = 'scanner'; $$('.section').forEach((s) => s.classList.toggle('active', s.id === 'scanner')); $$('.nav button').forEach((b) => b.classList.toggle('active', b.dataset.section === 'scanner')); }
+  el.innerHTML = '<div class="loading">Opening bill…</div>';
+  const [s, cat] = await Promise.all([GET('/scans/' + id), CATALOG ? CATALOG : GET('/products?limit=500').then((r) => r.items)]);
+  CATALOG = cat;
+  const blob = localFile || (await GET('/files/' + s.file.id, { blob: true }));
+  SCAN = { ...s, url: URL.createObjectURL(blob), data: s.data || { kind: 'purchase', vendor: {}, items: [], warnings: [] } };
+  SCAN.data.vendor = SCAN.data.vendor || {}; SCAN.data.items = SCAN.data.items || [];
+  renderScan();
+}
+function renderScan() {
+  const s = SCAN, d = s.data, done = s.status === 'converted';
+  const isPdf = s.file.mime === 'application/pdf';
+  const gstinOk = !d.vendor.gstin || /^\d{2}[A-Z]{5}\d{4}[A-Z][A-Z\d]Z[A-Z\d]$/.test(d.vendor.gstin);
+  $('#scanner').innerHTML = `<div class="page-head"><div><h1>${esc(d.vendor.name || 'Scanned bill')}</h1><p>${esc(s.file.filename)} · read by ${{ ai: 'AI', ocr: 'on-device OCR', manual: 'hand' }[s.engine] || '—'}${d.confidence ? ' · confidence ' + d.confidence : ''}</p></div>
+    <div class="actions"><button class="btn" onclick="go('scanner')">← All scans</button>${done || isPdf ? '' : `<button class="btn" onclick="rereadScan()" title="Runs the free OCR again in a different mode (black-and-white, row by row)">↻ Read again</button>`}<button class="btn" onclick="exportScan()">Download Excel</button>${done ? '' : '<button class="btn" onclick="saveScan()">Save changes</button>'}</div></div>
+  <div id="rereadStatus" class="card" style="margin-bottom:14px" hidden><div id="rrMsg" class="muted"></div><div class="progress"><div id="rrBar"></div></div></div>
+  ${done ? `<div class="notice" style="background:#e6f2eb;border-color:#bcdcc8;color:#17633f">This bill has been recorded. ${s.invoiceId ? `<a href="#" onclick="viewInvoice('${s.invoiceId}');return false">Open the purchase entry</a>` : 'It is in Expenses.'}</div>` : ''}
+  <div class="scan-grid">
+    <div class="card"><div class="card-title"><h2>Original</h2><a class="btn" href="${s.url}" target="_blank" rel="noopener" style="text-decoration:none">Open full size</a></div>
+      <div class="scan-img">${isPdf ? `<iframe src="${s.url}" title="Bill PDF"></iframe>` : `<img src="${s.url}" alt="Bill photo">`}</div>
+      ${s.rawText ? `<details style="margin-top:10px"><summary>Text the OCR read</summary><pre class="raw">${esc(s.rawText)}</pre></details>` : ''}</div>
+    <div>
+      <div class="card"><div class="card-title"><h2>Extracted data</h2><div class="tabs"><button class="btn ${d.kind !== 'expense' ? 'primary' : ''}" onclick="SCAN.data.kind='purchase';renderScan()" ${done ? 'disabled' : ''}>Purchase bill</button><button class="btn ${d.kind === 'expense' ? 'primary' : ''}" onclick="SCAN.data.kind='expense';renderScan()" ${done ? 'disabled' : ''}>Expense bill</button></div></div>
+        <div class="form-grid" id="scanHead">
+          <div class="field" style="grid-column:span 2"><label>Vendor</label><input class="input" data-k="vendor.name" value="${esc(d.vendor.name)}"></div>
+          <div class="field"><label>Vendor GSTIN ${d.vendor.gstin ? (gstinOk ? '<span class="up">✓ valid</span>' : '<span class="down">⚠ check</span>') : ''}</label><input class="input" data-k="vendor.gstin" value="${esc(d.vendor.gstin)}"></div>
+          <div class="field"><label>Bill number</label><input class="input" data-k="billNo" value="${esc(d.billNo)}"></div>
+          <div class="field"><label>Bill date</label><input class="input" type="date" data-k="date" value="${esc(d.date)}"></div>
+          <div class="field"><label>Due date</label><input class="input" type="date" data-k="dueDate" value="${esc(d.dueDate)}"></div>
+          ${d.kind === 'expense' ? `<div class="field"><label>Expense category</label><input class="input" data-k="category" value="${esc(d.category || '')}" list="exCats2"><datalist id="exCats2">${['Rent', 'Salary', 'Electricity', 'Internet', 'Marketing', 'Transport', 'Packaging', 'Repairs', 'Bank charges', 'Other'].map((c) => `<option value="${c}">`).join('')}</datalist></div>` : ''}
+          <div class="field"><label>Printed total (₹)</label><input class="input" data-k="total" value="${d.total ?? ''}" inputmode="decimal"></div>
+          <div class="field"><label>Printed GST (₹)</label><input class="input" data-k="taxTotal" value="${d.taxTotal ?? ''}" inputmode="decimal"></div>
+        </div>
+        <h3 style="font-size:13px;margin:18px 0 6px">Items</h3>
+        <div class="table-wrap"><table class="line-table"><thead><tr><th>Item as printed</th><th>HSN</th><th>Qty</th><th>Rate (before GST)</th><th>GST %</th><th class="right">Amount</th>${d.kind === 'expense' ? '' : '<th>Link to product</th>'}<th></th></tr></thead><tbody>
+        ${d.items.map((it, i) => `<tr><td style="min-width:170px"><input data-i="${i}" data-f="name" value="${esc(it.name)}"></td><td style="width:80px"><input data-i="${i}" data-f="hsn" value="${esc(it.hsn || '')}"></td><td style="width:70px"><input data-i="${i}" data-f="qty" value="${it.qty}" inputmode="decimal"></td><td style="width:100px"><input data-i="${i}" data-f="rate" value="${it.rate}" inputmode="decimal"></td><td style="width:66px"><input data-i="${i}" data-f="gstRate" value="${it.gstRate ?? ''}" inputmode="decimal"></td><td class="right" id="samt${i}">${inr2(Math.round(it.qty * it.rate * (1 - (it.discount || 0) / 100) * 100))}</td>
+          ${d.kind === 'expense' ? '' : `<td class="match"><select data-i="${i}" data-f="productId"><option value="">+ New product</option>${CATALOG.map((p) => `<option value="${p.id}" ${p.id === it.productId ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</select>${it.productId && it.matchScore ? `<div class="muted">auto-matched ${Math.round(it.matchScore * 100)}%</div>` : ''}</td>`}
+          <td><button class="btn" onclick="SCAN.data.items.splice(${i},1);renderScan()" aria-label="Remove line" ${done ? 'disabled' : ''}>×</button></td></tr>`).join('')}
+        </tbody></table></div>
+        ${done ? '' : `<button class="btn" style="margin-top:8px" onclick="SCAN.data.items.push({name:'',qty:1,rate:0,gstRate:null,discount:0});renderScan()">+ Add line</button>`}
+        ${!done && (d.unparsedLines || []).length ? `<div class="notice" style="margin-top:14px;background:#e8f0f8;border-color:#c9dbee;color:#245b8f"><b>${d.unparsedLines.length} line${d.unparsedLines.length > 1 ? 's' : ''} from the item table could not be read as items.</b> Check them against the photo and add the ones that are items:
+          <div style="display:grid;gap:6px;margin-top:8px">${d.unparsedLines.map((l, i) => `<div style="display:flex;gap:8px;align-items:center;background:#fff;border-radius:8px;padding:6px 8px;color:var(--ink)"><code style="flex:1;font-size:12px;white-space:pre-wrap">${esc(l)}</code><button class="btn" onclick="addUnparsed(${i})">Add as item</button><button class="btn" onclick="SCAN.data.unparsedLines.splice(${i},1);renderScan()" aria-label="Ignore">×</button></div>`).join('')}</div></div>` : ''}
+        ${!done && s.engine === 'ocr' && (d.confidence === 'low' || (d.warnings || []).length) ? `<p class="muted" style="font-size:12px;margin-top:10px">Tips for better free OCR: photograph the bill flat, in daylight, straight from above, filling the frame; avoid shadows and folds. Try <b>↻ Read again</b> for faint bills.${ME.aiEnabled ? '' : ' For handwritten or very messy bills, AI reading (Settings) is far more accurate.'}</p>` : ''}
+        <div id="scanChecks"></div>
+      </div>
+      <div class="card" style="margin-top:14px" id="scanVisual"></div>
+      ${done ? '' : `<div class="card" style="margin-top:14px"><div class="card-title"><h2>Record it</h2></div><div class="form-grid" id="convf">
+        <div class="field"><label>Payment</label><select class="select" name="payMode">${d.kind === 'expense' ? '' : '<option value="credit">On credit (pay later)</option>'}<option value="bank">Bank</option><option value="upi">UPI</option><option value="cash">Cash</option><option value="card">Card</option></select></div>
+        ${d.kind === 'expense' ? '' : '<div class="field"><label>Paid now (₹)</label><input class="input" name="paid" placeholder="Full amount"></div>'}
+        <div class="field" style="display:flex;align-items:flex-end"><button class="btn red" style="width:100%" onclick="convertScan()">${d.kind === 'expense' ? 'Record as expense' : 'Create purchase entry'}</button></div></div>
+        <p class="muted" style="font-size:12px;margin-bottom:0">${d.kind === 'expense' ? 'Adds the bill to Expenses with this photo attached.' : 'Adds the stock, updates cost prices, adds the amount to the supplier\'s balance (creating the supplier if new) and attaches this photo. Lines set to “New product” become new catalog products.'}</p></div>`}
+    </div></div>`;
+  if (done) $$('#scanner input,#scanner select').forEach((x) => (x.disabled = true));
+  $$('#scanHead [data-k]').forEach((inp) => inp.addEventListener('input', () => { const k = inp.dataset.k; if (k.startsWith('vendor.')) SCAN.data.vendor[k.slice(7)] = inp.value; else SCAN.data[k] = ['total', 'taxTotal'].includes(k) ? (inp.value === '' ? null : parseFloat(inp.value)) : inp.value; drawScanChecks(); }));
+  $$('#scanner [data-i]').forEach((inp) => inp.addEventListener(inp.tagName === 'SELECT' ? 'change' : 'input', () => {
+    const it = SCAN.data.items[+inp.dataset.i], f = inp.dataset.f;
+    it[f] = ['qty', 'rate', 'gstRate'].includes(f) ? (inp.value === '' ? null : parseFloat(inp.value)) : inp.value || null;
+    if (f === 'productId') { it.matchScore = null; }
+    const a = $('#samt' + inp.dataset.i); if (a) a.textContent = inr2(Math.round((it.qty || 0) * (it.rate || 0) * (1 - (it.discount || 0) / 100) * 100));
+    drawScanChecks();
+  }));
+  drawScanChecks();
+}
+function scanTotals() {
+  const d = SCAN.data;
+  let taxable = 0, gst = 0, units = 0;
+  d.items.forEach((it) => { const b = (it.qty || 0) * (it.rate || 0) * (1 - (it.discount || 0) / 100); taxable += b; gst += b * ((it.gstRate || 0) / 100); units += it.qty || 0; });
+  const vs = (d.vendor.gstin || '').slice(0, 2), ss = (ME.shop.gstin || '').slice(0, 2);
+  const inter = vs && ss && vs !== ss;
+  return { taxable, gst, total: taxable + gst, units, inter };
+}
+function drawScanChecks() {
+  const d = SCAN.data, t = scanTotals();
+  const checks = [];
+  if (d.total != null && d.items.length) {
+    const diff = Math.round(t.total) - Math.round(d.total);
+    checks.push(Math.abs(t.total - d.total) <= Math.max(1.5, d.total * 0.01) ? { ok: 1, t: `Lines + GST = ${inr2(Math.round(t.total * 100))}, matching the printed total ${inr2(Math.round(d.total * 100))}` } : { t: `Lines + GST = ${inr2(Math.round(t.total * 100))} but the printed total is ${inr2(Math.round(d.total * 100))} (difference ₹${Math.abs(diff)}). Check quantities and rates.` });
+  }
+  if (d.taxTotal != null && d.items.length && Math.abs(t.gst - d.taxTotal) > Math.max(1.5, d.taxTotal * 0.02)) checks.push({ t: `GST from the lines is ${inr2(Math.round(t.gst * 100))} but the bill shows ${inr2(Math.round(d.taxTotal * 100))}. Check the GST % on each line.` });
+  d.items.forEach((it, i) => { if (!it.name) checks.push({ t: `Line ${i + 1} has no name` }); if (it.gstRate == null && d.kind !== 'expense') checks.push({ t: `Line ${i + 1} (${it.name || 'unnamed'}) has no GST %` }); });
+  if (d.vendor.gstin && !/^\d{2}[A-Z]{5}\d{4}[A-Z][A-Z\d]Z[A-Z\d]$/.test(d.vendor.gstin)) checks.push({ t: `GSTIN "${d.vendor.gstin}" is not in a valid format` });
+  if (!d.billNo) checks.push({ t: 'Bill number is empty' });
+  (d.warnings || []).filter((w) => !w.startsWith('Check:')).forEach((w) => checks.push({ t: w }));
+  const newCount = d.items.filter((it) => !it.productId).length;
+  if (d.kind !== 'expense' && newCount) checks.push({ info: 1, t: `${newCount} line${newCount > 1 ? 's' : ''} will create new products. Link them to existing products if they're already in your catalog.` });
+  $('#scanChecks').innerHTML = `<ul class="warn-list ${checks.every((c) => c.ok) ? 'ok-list' : ''}">${checks.map((c) => `<li style="${c.ok ? 'background:#e6f2eb;border-color:#bcdcc8;color:#17633f' : c.info ? 'background:#e8f0f8;border-color:#c9dbee;color:#245b8f' : ''}">${c.ok ? '✓ ' : c.info ? 'ℹ ' : '⚠ '}${esc(c.t)}</li>`).join('')}</ul>`;
+  // representational view of the bill
+  const rows = d.items.map((it) => ({ label: it.name || '—', value: Math.round((it.qty || 0) * (it.rate || 0) * (1 - (it.discount || 0) / 100) * 100) })).sort((a, b) => b.value - a.value);
+  const byRate = {};
+  d.items.forEach((it) => { const r = it.gstRate ?? 0; const b = (it.qty || 0) * (it.rate || 0) * (1 - (it.discount || 0) / 100); byRate[r] = (byRate[r] || 0) + b; });
+  const gstP = Math.round(t.gst * 100);
+  $('#scanVisual').innerHTML = `<div class="card-title"><h2>Bill at a glance</h2><span class="muted">${t.inter ? 'Inter-state: IGST' : 'Same state: CGST + SGST'}</span></div>
+    <div class="stat-row"><div class="mini"><span class="muted">Items</span><b>${d.items.length}</b></div><div class="mini"><span class="muted">Units</span><b>${qty(t.units)}</b></div><div class="mini"><span class="muted">Taxable</span><b>${short(Math.round(t.taxable * 100))}</b></div><div class="mini"><span class="muted">GST</span><b>${short(gstP)}</b></div><div class="mini"><span class="muted">Total</span><b>${short(Math.round(t.total * 100))}</b></div></div>
+    <div class="grid two" style="margin-top:14px;grid-template-columns:1.3fr 1fr"><div><div class="muted" style="font-size:12px">Share of bill by item</div>${bars(rows)}</div>
+    <div>${donut([{ label: 'Taxable value', value: Math.round(t.taxable * 100), color: '#13201c', display: short(Math.round(t.taxable * 100)) }, ...(t.inter ? [{ label: 'IGST', value: gstP, color: '#a3172b', display: short(gstP) }] : [{ label: 'CGST', value: gstP / 2, color: '#a3172b', display: short(gstP / 2) }, { label: 'SGST', value: gstP / 2, color: '#8a6200', display: short(gstP / 2) }])], short(Math.round(t.total * 100)))}
+    <div class="chips">${Object.entries(byRate).map(([r, v]) => `<span class="chip">${r}% GST<b>${short(Math.round(v * 100))}</b></span>`).join('')}</div></div></div>`;
+}
+/** Turn an unread OCR line into an item: text is the name, numbers fill qty / rate / amount as best they can. */
+function addUnparsed(i) {
+  const line = SCAN.data.unparsedLines[i];
+  const toks = line.split(' ').filter((t) => !/^\d{1,3}[.)]?$/.test(t) || false);
+  const nums = line.match(/-?\d[\d,]*\.?\d*/g)?.map((x) => parseFloat(x.replace(/,/g, ''))).filter((x) => Number.isFinite(x)) || [];
+  const name = line.replace(/^\d{1,3}[.)]?\s+/, '').replace(/(\s+[-\d,.%©:]+|\s+(pcs|nos|kg|bag|box|pkt|set|ml|g|l))+\s*$/i, '').trim() || toks.join(' ');
+  const amount = nums.length ? nums[nums.length - 1] : 0;
+  let qty = 1, rate = amount;
+  for (let a = 0; a < nums.length - 1; a++) for (let b = a + 1; b < nums.length - 1; b++) if (nums[a] > 0 && Math.abs(nums[a] * nums[b] - amount) <= Math.max(0.6, amount * 0.012)) { qty = nums[a]; rate = nums[b]; }
+  SCAN.data.items.push({ name, qty, rate, gstRate: null, discount: 0, amount });
+  SCAN.data.unparsedLines.splice(i, 1);
+  renderScan();
+  toast('Added. Check the quantity, rate and GST % against the photo.');
+}
+async function rereadScan() {
+  if (SCAN.data.items.length && !confirm('Read the bill again in a different mode? This replaces the extracted data on this screen.')) return;
+  const box = $('#rereadStatus'); box.hidden = false;
+  const prog = (m, p) => { $('#rrMsg').textContent = m; $('#rrBar').style.width = (p || 0) + '%'; };
+  try {
+    const blob = await (await fetch(SCAN.url)).blob();
+    const o = await ocrBill(blob, true, prog);
+    const parsed = parseBillText(o.text, ME.shop.gstin, o.headerText);
+    const before = SCAN.data.items.length;
+    await api('PUT', `/scans/${SCAN.id}/data`, { data: parsed, engine: 'ocr', rawText: o.text });
+    toast(`Read again: ${parsed.items.length} items (was ${before})`);
+    openScan(SCAN.id);
+  } catch (e) { prog('Could not read the bill: ' + e.message, 0); }
+}
+async function saveScan(quiet) {
+  const r = await api('PUT', `/scans/${SCAN.id}/data`, { data: SCAN.data, engine: 'manual' });
+  SCAN = { ...SCAN, ...r, url: SCAN.url, file: SCAN.file };
+  if (!quiet) { toast('Saved'); renderScan(); }
+}
+async function convertScan() {
+  const f = form($('#convf')), d = SCAN.data;
+  if (d.kind !== 'expense' && !d.items.length) return toast('Add at least one item line', true);
+  if (!d.vendor.name && d.kind !== 'expense') return toast('Enter the vendor name', true);
+  await saveScan(true);
+  const body = { as: d.kind === 'expense' ? 'expense' : 'purchase', payMode: f.payMode, category: d.category || undefined, createSupplier: true };
+  if (f.paid !== undefined && f.paid !== '' && f.payMode !== 'credit') body.paidPaise = Math.round(parseFloat(f.paid) * 100);
+  const r = await api('POST', `/scans/${SCAN.id}/convert`, body);
+  CATALOG = null;
+  if (r.converted === 'purchase') {
+    const diff = r.totalCheck?.differencePaise;
+    toast(`Purchase ${r.invoice.number} created · ${inr2(r.invoice.totalPaise)}${diff ? ` (₹${Math.abs(diff / 100).toFixed(2)} ${diff > 0 ? 'more' : 'less'} than printed, from rounding)` : ''}`);
+  } else toast('Expense recorded');
+  loadAlerts(); openScan(SCAN.id);
+}
+function exportScan() {
+  const d = SCAN.data, t = scanTotals();
+  downloadXlsx({
+    Bill: [{ Vendor: d.vendor.name || '', GSTIN: d.vendor.gstin || '', Phone: d.vendor.phone || '', 'Bill no.': d.billNo || '', Date: d.date || '', 'Due date': d.dueDate || '', Kind: d.kind, 'Printed total': d.total ?? '', 'Printed GST': d.taxTotal ?? '', 'Calculated taxable': +t.taxable.toFixed(2), 'Calculated GST': +t.gst.toFixed(2), 'Calculated total': +t.total.toFixed(2) }],
+    Items: d.items.map((it) => ({ Item: it.name, HSN: it.hsn || '', Qty: it.qty, Rate: it.rate, 'GST %': it.gstRate ?? '', Amount: +((it.qty || 0) * (it.rate || 0)).toFixed(2), 'Linked product': CATALOG?.find((p) => p.id === it.productId)?.name || '' })),
+  }, `bill-${(d.billNo || SCAN.id).replace(/\W+/g, '-')}.xlsx`);
+}
+
+/* ================= start ================= */
+if (token) boot(); else showLogin();
+</script>
+</body>
+</html>

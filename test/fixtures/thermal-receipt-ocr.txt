@@ -1,0 +1,13 @@
+CITY PACKAGING STORE
+
+Station Road, Indore
+
+GSTIN:23BXQPS1234R1Z2
+Bill:4521 01/10/2026 18:42
+Item Qty Amt
+Carry Bag Medium 100 250.00
+Bubble Wrap Roll 2 360.00
+Packing Tape 2in 12 288.00
+Gift Box Small 25 375.00
+TOTAL 1273.00
+Incl. GST 18% Paid: UPI

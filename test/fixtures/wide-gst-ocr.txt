@@ -1,0 +1,21 @@
+TAX INVOICE
+
+Glow Cosmetics Distributors LLP Invoice # GCD-2026-0456
+
+12 Rajwada Chowk, Indore, MP | GSTIN 23AAQFG7788K1Z9 | Ph 0731-2456789 Dated: 01/10/2026
+
+Description of Goods HSN GST Qty Rate Taxable CGST SGST Total
+
+Kajal Pencil Black 3304 18% 24 95.00 2,280.00 205.20 205.20 2,690.40
+
+Matte Lipstick Rose 3304 18% 12 180.00 2,160.00 194.40 194.40 2,548.80
+
+Herbal Shampoo 340 ml 3305 18% 6 165.00 990.00 89.10 89.10 1,168.20
+
+Bridal Bindi Set 3304 5% 30 75.00 2,250.00 56.25 56.25 2,362.50
+
+Silk Hair Scrunchies 6217 12% 20 70.00 1,400.00 84.00 84.00 1,568.00
+Taxable Amount 9,080.00
+CGST 628.95
+SGST 628.95
+Invoice Total 10,338.00
